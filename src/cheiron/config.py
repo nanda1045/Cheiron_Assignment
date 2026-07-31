@@ -3,7 +3,7 @@
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import Field
+from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -19,7 +19,11 @@ class Settings(BaseSettings):
     environment: Literal["development", "test", "production"] = "development"
     log_level: str = "INFO"
     planner_provider: Literal["auto", "openai", "rules"] = "auto"
-    openai_model: str = "gpt-5.6-terra"
+    openai_api_key: SecretStr | None = Field(
+        default=None,
+        validation_alias="OPENAI_API_KEY",
+    )
+    openai_model: str = "gpt-5.6-sol"
     service_name: str = "cheiron"
     api_prefix: str = "/v1"
     clinical_trials_base_url: str = "https://clinicaltrials.gov/api/v2"
