@@ -1,4 +1,4 @@
-"""Recorded ClinicalTrials.gov response fixtures."""
+"""Recorded ClinicalTrials.gov response fixtures shared across test packages."""
 
 import json
 from pathlib import Path
@@ -6,7 +6,7 @@ from typing import Any
 
 import pytest
 
-FIXTURE_DIRECTORY = Path(__file__).parents[1] / "fixtures" / "clinical_trials"
+FIXTURE_DIRECTORY = Path(__file__).parent / "fixtures" / "clinical_trials"
 
 
 def load_json_fixture(name: str) -> dict[str, Any]:
