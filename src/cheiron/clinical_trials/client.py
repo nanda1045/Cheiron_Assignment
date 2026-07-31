@@ -35,7 +35,6 @@ class ClinicalTrialsClient:
         self._client = client or httpx.AsyncClient(
             base_url=base_url,
             timeout=httpx.Timeout(timeout_seconds),
-            headers={"User-Agent": "cheiron-trials/0.1"},
         )
         self._retry_attempts = retry_attempts
         self._retry_wait_seconds = retry_wait_seconds

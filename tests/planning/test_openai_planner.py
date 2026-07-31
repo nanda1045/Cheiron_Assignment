@@ -154,7 +154,10 @@ async def test_installed_sdk_serializes_and_parses_the_strict_schema() -> None:
     payload = json.loads(route.calls.last.request.content)
     assert payload["store"] is False
     assert payload["text"]["format"]["strict"] is True
-    assert payload["text"]["format"]["schema"]["additionalProperties"] is False
+    schema = payload["text"]["format"]["schema"]
+    assert schema["additionalProperties"] is False
+    assert "anyOf" in schema["properties"]["decision"]
+    assert "oneOf" not in schema["properties"]["decision"]
 
 
 @pytest.mark.asyncio

@@ -42,6 +42,25 @@ async def test_client_retrieves_every_page(
 
 
 @respx.mock
+async def test_client_does_not_override_httpx_user_agent(first_page: dict[str, Any]) -> None:
+    """ClinicalTrials.gov rejects explicit custom user agents with HTTP 403."""
+
+    single_page = {**first_page, "nextPageToken": None, "totalCount": 1}
+    route = respx.get(f"{BASE_URL}/studies").mock(
+        return_value=httpx.Response(200, json=single_page)
+    )
+
+    async with ClinicalTrialsClient(
+        base_url=BASE_URL,
+        timeout_seconds=5,
+        retry_wait_seconds=0,
+    ) as client:
+        await client.fetch_studies(compiled_query(), max_studies=10)
+
+    assert route.calls[0].request.headers["user-agent"].startswith("python-httpx/")
+
+
+@respx.mock
 async def test_client_rejects_query_above_correctness_limit(first_page: dict[str, Any]) -> None:
     first_page["totalCount"] = 50_000
     respx.get(f"{BASE_URL}/studies").mock(return_value=httpx.Response(200, json=first_page))

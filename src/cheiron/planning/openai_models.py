@@ -1,6 +1,6 @@
 """Strict structured-output envelope returned by the OpenAI planner."""
 
-from typing import Annotated, Literal
+from typing import Literal
 
 from pydantic import Field
 
@@ -25,10 +25,7 @@ class ModelClarificationDecision(DomainModel):
     suggestions: list[str] = Field(default_factory=list, max_length=5)
 
 
-ModelPlannerDecision = Annotated[
-    ModelPlanDecision | ModelClarificationDecision,
-    Field(discriminator="status"),
-]
+ModelPlannerDecision = ModelPlanDecision | ModelClarificationDecision
 
 
 class ModelPlannerEnvelope(DomainModel):
