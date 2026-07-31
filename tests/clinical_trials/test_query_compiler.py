@@ -34,9 +34,7 @@ def test_compiler_pushes_search_fields_and_preserves_exact_post_filters() -> Non
     assert compiled.params["query.intr"] == '"Pembrolizumab" OR "Nivolumab"'
     assert compiled.params["pageSize"] == "1000"
     assert compiled.params["countTotal"] == "true"
-    assert [post_filter.field for post_filter in compiled.post_filters] == [
-        FilterField.START_YEAR
-    ]
+    assert [post_filter.field for post_filter in compiled.post_filters] == [FilterField.START_YEAR]
 
 
 def test_compiler_removes_query_language_quotes_from_values() -> None:

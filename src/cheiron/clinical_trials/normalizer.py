@@ -155,9 +155,7 @@ class TrialNormalizer:
         if not isinstance(value, list):
             return ()
         return tuple(
-            dict.fromkeys(
-                item.strip() for item in value if isinstance(item, str) and item.strip()
-            )
+            dict.fromkeys(item.strip() for item in value if isinstance(item, str) and item.strip())
         )
 
     @classmethod
@@ -241,15 +239,11 @@ class TrialNormalizer:
         interventions: tuple[Intervention, ...],
     ) -> None:
         if interventions:
-            names: list[ScalarValue] = [
-                intervention.name for intervention in interventions
-            ]
+            names: list[ScalarValue] = [intervention.name for intervention in interventions]
             source_values[f"{INTERVENTIONS_PATH}.name"] = names
         intervention_types: list[ScalarValue] = list(
             dict.fromkeys(
-                intervention.type
-                for intervention in interventions
-                if intervention.type is not None
+                intervention.type for intervention in interventions if intervention.type is not None
             )
         )
         if intervention_types:
