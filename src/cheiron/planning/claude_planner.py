@@ -1,20 +1,20 @@
-"""OpenAI Responses API planner using strict Pydantic Structured Outputs."""
+"""Claude planner using Anthropic's Pydantic structured-output helper."""
 
-from openai import AsyncOpenAI, OpenAIError
+from anthropic import AnthropicError, AsyncAnthropic
 from pydantic import ValidationError
 
 from cheiron.domain.enums import PlannerMode
 from cheiron.domain.request import QueryRequest
 from cheiron.planning.errors import (
     ClarificationNeeded,
-    OpenAIPlanningError,
+    ModelPlanningError,
 )
 from cheiron.planning.guard import ModelPlanGuard
-from cheiron.planning.models import PlanningResult
-from cheiron.planning.openai_models import (
+from cheiron.planning.model_output import (
     ModelClarificationDecision,
     ModelPlannerEnvelope,
 )
+from cheiron.planning.models import PlanningResult
 
 PLANNER_INSTRUCTIONS = """\
 Role: Convert one clinical-trial visualization request into the supplied semantic plan schema.
@@ -40,14 +40,14 @@ Output: Return exactly one structured planned or clarification_required decision
 """
 
 
-class OpenAIPlanner:
+class ClaudePlanner:
     """Produce a plan with the model, then enforce application-owned invariants."""
 
     def __init__(
         self,
-        client: AsyncOpenAI,
+        client: AsyncAnthropic,
         *,
-        model: str = "gpt-5.6-sol",
+        model: str = "claude-sonnet-5",
         guard: ModelPlanGuard | None = None,
     ) -> None:
         self._client = client
@@ -56,21 +56,20 @@ class OpenAIPlanner:
 
     async def plan(self, request: QueryRequest) -> PlanningResult:
         try:
-            response = await self._client.responses.parse(
+            response = await self._client.messages.parse(
                 model=self._model,
-                instructions=PLANNER_INSTRUCTIONS,
-                input=request.model_dump_json(),
-                text_format=ModelPlannerEnvelope,
-                max_output_tokens=4_000,
-                store=False,
+                max_tokens=4_000,
+                system=PLANNER_INSTRUCTIONS,
+                messages=[{"role": "user", "content": request.model_dump_json()}],
+                output_format=ModelPlannerEnvelope,
             )
-        except (OpenAIError, ValidationError) as error:
-            raise OpenAIPlanningError("OpenAI planner request failed") from error
+        except (AnthropicError, ValidationError) as error:
+            raise ModelPlanningError("Claude planner request failed") from error
 
-        output = response.output_parsed
+        output = response.parsed_output
         if output is None:
-            raise OpenAIPlanningError(
-                "OpenAI planner returned a refusal or no parsed structured output"
+            raise ModelPlanningError(
+                "Claude planner returned a refusal or no parsed structured output"
             )
         decision = output.decision
         if isinstance(decision, ModelClarificationDecision):
@@ -83,7 +82,7 @@ class OpenAIPlanner:
         self._guard.validate(request, decision.plan)
         return PlanningResult(
             plan=decision.plan,
-            mode=PlannerMode.OPENAI,
+            mode=PlannerMode.CLAUDE,
             model=self._model,
             capability_limited=False,
             warnings=tuple(decision.warnings),

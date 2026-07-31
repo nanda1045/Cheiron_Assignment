@@ -23,13 +23,13 @@ async def test_readiness_endpoint() -> None:
     assert response.json()["status"] == "ready"
 
 
-async def test_readiness_reports_missing_key_for_openai_only_mode(
+async def test_readiness_reports_missing_key_for_anthropic_only_mode(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
-    openai_only_app = create_app(settings=Settings(_env_file=None, planner_provider="openai"))
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    anthropic_only_app = create_app(settings=Settings(_env_file=None, planner_provider="anthropic"))
     async with AsyncClient(
-        transport=ASGITransport(app=openai_only_app),
+        transport=ASGITransport(app=anthropic_only_app),
         base_url="http://test",
     ) as client:
         response = await client.get("/ready")

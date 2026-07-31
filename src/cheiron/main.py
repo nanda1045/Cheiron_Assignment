@@ -95,7 +95,7 @@ def create_app(
             "environment": resolved_settings.environment,
             "planner_provider": resolved_settings.planner_provider,
             "effective_planner": effective_planner,
-            "openai_configured": resolved_settings.openai_api_key is not None,
+            "anthropic_configured": resolved_settings.anthropic_api_key is not None,
         }
         return JSONResponse(
             status_code=(
@@ -113,9 +113,9 @@ def create_app(
 def _effective_planner(settings: Settings) -> str:
     if settings.planner_provider == "rules":
         return "rules"
-    if settings.openai_api_key is None:
-        return "unavailable" if settings.planner_provider == "openai" else "rules"
-    return "openai" if settings.planner_provider == "openai" else "openai_with_rules_fallback"
+    if settings.anthropic_api_key is None:
+        return "unavailable" if settings.planner_provider == "anthropic" else "rules"
+    return "claude" if settings.planner_provider == "anthropic" else "claude_with_rules_fallback"
 
 
 app = create_app()

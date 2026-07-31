@@ -24,7 +24,7 @@ from cheiron.domain.response import (
     ErrorResponse,
     QueryResponse,
 )
-from cheiron.planning.errors import ClarificationNeeded, OpenAIPlanningError
+from cheiron.planning.errors import ClarificationNeeded, ModelPlanningError
 
 router = APIRouter(tags=["queries"])
 QueryServiceDependency = Annotated[QueryService, Depends(get_query_service)]
@@ -69,7 +69,7 @@ async def query_trials(
                 "max_studies": error.max_studies,
             },
         )
-    except OpenAIPlanningError:
+    except ModelPlanningError:
         return error_response(
             status.HTTP_503_SERVICE_UNAVAILABLE,
             request_id,

@@ -18,12 +18,12 @@ class Settings(BaseSettings):
 
     environment: Literal["development", "test", "production"] = "development"
     log_level: str = "INFO"
-    planner_provider: Literal["auto", "openai", "rules"] = "auto"
-    openai_api_key: SecretStr | None = Field(
+    planner_provider: Literal["auto", "anthropic", "rules"] = "auto"
+    anthropic_api_key: SecretStr | None = Field(
         default=None,
-        validation_alias="OPENAI_API_KEY",
+        validation_alias="ANTHROPIC_API_KEY",
     )
-    openai_model: str = "gpt-5.6-sol"
+    anthropic_model: str = "claude-sonnet-5"
     service_name: str = "cheiron"
     api_prefix: str = "/v1"
     clinical_trials_base_url: str = "https://clinicaltrials.gov/api/v2"

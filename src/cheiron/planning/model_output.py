@@ -1,4 +1,4 @@
-"""Strict structured-output envelope returned by the OpenAI planner."""
+"""Strict structured-output envelope returned by a model-backed planner."""
 
 from typing import Literal
 

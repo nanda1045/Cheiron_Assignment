@@ -4,7 +4,7 @@ from dataclasses import replace
 
 from cheiron.domain.request import QueryRequest
 from cheiron.planning.base import Planner
-from cheiron.planning.errors import OpenAIPlanningError
+from cheiron.planning.errors import ModelPlanningError
 from cheiron.planning.models import PlanningResult
 
 
@@ -18,12 +18,12 @@ class GuardedPlanner:
     async def plan(self, request: QueryRequest) -> PlanningResult:
         try:
             return await self._primary.plan(request)
-        except OpenAIPlanningError:
+        except ModelPlanningError:
             result = await self._fallback.plan(request)
             return replace(
                 result,
                 warnings=(
-                    "OpenAI planning was unavailable; the deterministic fallback was used.",
+                    "Claude planning was unavailable; the deterministic fallback was used.",
                     *result.warnings,
                 ),
             )

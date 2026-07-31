@@ -1,4 +1,4 @@
-"""Tests for strict OpenAI planning, plan guards, and narrow failover."""
+"""Tests for strict Claude planning, plan guards, and narrow failover."""
 
 import json
 from types import SimpleNamespace
@@ -8,7 +8,7 @@ from unittest.mock import AsyncMock, MagicMock
 import httpx
 import pytest
 import respx
-from openai import APIConnectionError, AsyncOpenAI
+from anthropic import APIConnectionError, AsyncAnthropic
 
 from cheiron.domain.enums import (
     Aggregation,
@@ -28,18 +28,18 @@ from cheiron.domain.plan import (
     MeasureSpec,
 )
 from cheiron.domain.request import QueryFilters, QueryOptions, QueryRequest
+from cheiron.planning.claude_planner import PLANNER_INSTRUCTIONS, ClaudePlanner
 from cheiron.planning.errors import (
     ClarificationNeeded,
+    ModelPlanningError,
     ModelPlanRejectedError,
-    OpenAIPlanningError,
 )
 from cheiron.planning.guarded import GuardedPlanner
-from cheiron.planning.openai_models import (
+from cheiron.planning.model_output import (
     ModelClarificationDecision,
     ModelPlanDecision,
     ModelPlannerEnvelope,
 )
-from cheiron.planning.openai_planner import PLANNER_INSTRUCTIONS, OpenAIPlanner
 from cheiron.planning.rules import RuleBasedPlanner
 
 
@@ -79,18 +79,18 @@ def mock_client(
     output: ModelPlannerEnvelope | None = None,
     *,
     error: Exception | None = None,
-) -> tuple[AsyncOpenAI, AsyncMock]:
-    client = MagicMock(spec=AsyncOpenAI)
+) -> tuple[AsyncAnthropic, AsyncMock]:
+    client = MagicMock(spec=AsyncAnthropic)
     parser = AsyncMock(
         side_effect=error,
-        return_value=SimpleNamespace(output_parsed=output),
+        return_value=SimpleNamespace(parsed_output=output, stop_reason="end_turn"),
     )
-    client.responses.parse = parser
-    return cast(AsyncOpenAI, client), parser
+    client.messages.parse = parser
+    return cast(AsyncAnthropic, client), parser
 
 
 @pytest.mark.asyncio
-async def test_openai_planner_uses_strict_responses_parse_contract() -> None:
+async def test_claude_planner_uses_strict_messages_parse_contract() -> None:
     request = QueryRequest(
         query="Show melanoma trials by phase",
         filters=QueryFilters(conditions=["Melanoma"]),
@@ -98,17 +98,17 @@ async def test_openai_planner_uses_strict_responses_parse_contract() -> None:
     envelope = ModelPlannerEnvelope(decision=ModelPlanDecision(plan=distribution_plan()))
     client, parser = mock_client(envelope)
 
-    result = await OpenAIPlanner(client, model="gpt-5.6-sol").plan(request)
+    result = await ClaudePlanner(client, model="claude-sonnet-5").plan(request)
 
-    assert result.mode is PlannerMode.OPENAI
-    assert result.model == "gpt-5.6-sol"
+    assert result.mode is PlannerMode.CLAUDE
+    assert result.model == "claude-sonnet-5"
     assert result.capability_limited is False
     parser.assert_awaited_once()
     arguments = parser.await_args.kwargs
-    assert arguments["instructions"] == PLANNER_INSTRUCTIONS
-    assert arguments["text_format"] is ModelPlannerEnvelope
-    assert arguments["store"] is False
-    assert arguments["input"] == request.model_dump_json()
+    assert arguments["system"] == PLANNER_INSTRUCTIONS
+    assert arguments["output_format"] is ModelPlannerEnvelope
+    assert arguments["max_tokens"] == 4_000
+    assert arguments["messages"] == [{"role": "user", "content": request.model_dump_json()}]
 
 
 @pytest.mark.asyncio
@@ -119,42 +119,35 @@ async def test_installed_sdk_serializes_and_parses_the_strict_schema() -> None:
         filters=QueryFilters(conditions=["Melanoma"]),
     )
     envelope = ModelPlannerEnvelope(decision=ModelPlanDecision(plan=distribution_plan()))
-    route = respx.post("https://api.openai.com/v1/responses").mock(
+    route = respx.post("https://api.anthropic.com/v1/messages").mock(
         return_value=httpx.Response(
             200,
             json={
-                "id": "resp_test",
-                "object": "response",
-                "created_at": 1_800_000_000,
-                "status": "completed",
-                "model": "gpt-5.6-sol",
-                "output": [
+                "id": "msg_test",
+                "type": "message",
+                "role": "assistant",
+                "model": "claude-sonnet-5",
+                "content": [
                     {
-                        "id": "msg_test",
-                        "type": "message",
-                        "status": "completed",
-                        "role": "assistant",
-                        "content": [
-                            {
-                                "type": "output_text",
-                                "text": envelope.model_dump_json(),
-                                "annotations": [],
-                            }
-                        ],
+                        "type": "text",
+                        "text": envelope.model_dump_json(),
                     }
                 ],
+                "stop_reason": "end_turn",
+                "stop_sequence": None,
+                "usage": {"input_tokens": 10, "output_tokens": 10},
             },
         )
     )
 
-    async with AsyncOpenAI(api_key="test-key", max_retries=0) as client:
-        result = await OpenAIPlanner(client).plan(request)
+    async with AsyncAnthropic(api_key="test-key", max_retries=0) as client:
+        result = await ClaudePlanner(client).plan(request)
 
     assert result.plan == distribution_plan()
     payload = json.loads(route.calls.last.request.content)
-    assert payload["store"] is False
-    assert payload["text"]["format"]["strict"] is True
-    schema = payload["text"]["format"]["schema"]
+    assert payload["max_tokens"] == 4_000
+    assert payload["messages"] == [{"role": "user", "content": request.model_dump_json()}]
+    schema = payload["output_config"]["format"]["schema"]
     assert schema["additionalProperties"] is False
     assert "anyOf" in schema["properties"]["decision"]
     assert "oneOf" not in schema["properties"]["decision"]
@@ -172,7 +165,7 @@ async def test_model_plan_cannot_override_structured_filters() -> None:
     client, _ = mock_client(envelope)
 
     with pytest.raises(ModelPlanRejectedError, match="structured condition"):
-        await OpenAIPlanner(client).plan(request)
+        await ClaudePlanner(client).plan(request)
 
 
 @pytest.mark.asyncio
@@ -215,7 +208,7 @@ async def test_model_plan_accepts_authoritative_filters_partitioned_by_compariso
     )
     client, _ = mock_client(ModelPlannerEnvelope(decision=ModelPlanDecision(plan=plan)))
 
-    result = await OpenAIPlanner(client).plan(request)
+    result = await ClaudePlanner(client).plan(request)
 
     assert result.plan == plan
 
@@ -230,18 +223,18 @@ async def test_model_clarification_is_preserved() -> None:
     client, _ = mock_client(ModelPlannerEnvelope(decision=decision))
 
     with pytest.raises(ClarificationNeeded) as captured:
-        await OpenAIPlanner(client).plan(QueryRequest(query="Compare trials by phase"))
+        await ClaudePlanner(client).plan(QueryRequest(query="Compare trials by phase"))
 
     assert captured.value.missing_fields == ("filters.interventions",)
     assert captured.value.suggestions == ("Pembrolizumab versus nivolumab",)
 
 
 @pytest.mark.asyncio
-async def test_missing_parsed_output_is_a_typed_openai_failure() -> None:
+async def test_missing_parsed_output_is_a_typed_model_failure() -> None:
     client, _ = mock_client(None)
 
-    with pytest.raises(OpenAIPlanningError, match="no parsed structured output"):
-        await OpenAIPlanner(client).plan(QueryRequest(query="Show trials by phase"))
+    with pytest.raises(ModelPlanningError, match="no parsed structured output"):
+        await ClaudePlanner(client).plan(QueryRequest(query="Show trials by phase"))
 
 
 @pytest.mark.asyncio
@@ -255,22 +248,22 @@ async def test_preferred_visualization_is_enforced_after_model_parsing() -> None
     )
 
     with pytest.raises(ModelPlanRejectedError, match="preferred visualization"):
-        await OpenAIPlanner(client).plan(request)
+        await ClaudePlanner(client).plan(request)
 
 
 @pytest.mark.asyncio
-async def test_guarded_planner_falls_back_only_for_expected_openai_failures() -> None:
+async def test_guarded_planner_falls_back_only_for_expected_claude_failures() -> None:
     connection_error = APIConnectionError(
-        request=httpx.Request("POST", "https://api.openai.com/v1/responses")
+        request=httpx.Request("POST", "https://api.anthropic.com/v1/messages")
     )
     client, _ = mock_client(error=connection_error)
-    planner = GuardedPlanner(OpenAIPlanner(client), RuleBasedPlanner())
+    planner = GuardedPlanner(ClaudePlanner(client), RuleBasedPlanner())
 
     result = await planner.plan(QueryRequest(query="Show trials for melanoma by phase"))
 
     assert result.mode is PlannerMode.RULES
     assert result.capability_limited is True
-    assert result.warnings[0].startswith("OpenAI planning was unavailable")
+    assert result.warnings[0].startswith("Claude planning was unavailable")
 
 
 @pytest.mark.asyncio
@@ -285,7 +278,7 @@ async def test_guarded_planner_does_not_hide_model_clarification() -> None:
     )
     fallback = MagicMock(spec=RuleBasedPlanner)
     fallback.plan = AsyncMock()
-    planner = GuardedPlanner(OpenAIPlanner(client), fallback)
+    planner = GuardedPlanner(ClaudePlanner(client), fallback)
 
     with pytest.raises(ClarificationNeeded):
         await planner.plan(QueryRequest(query="Show a trial chart"))

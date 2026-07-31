@@ -71,7 +71,7 @@ export const successResponse: SuccessResponse = {
     },
   },
   meta: {
-    planner: { mode: 'openai', model: 'gpt-test', capability_limited: false },
+    planner: { mode: 'claude', model: 'claude-test', capability_limited: false },
     record_counts: { matched: 52, retrieved: 52, used: 52, excluded: 0 },
     completeness: { status: 'complete', is_complete: true, pages_retrieved: 1, reason: null },
     duration_ms: 417,

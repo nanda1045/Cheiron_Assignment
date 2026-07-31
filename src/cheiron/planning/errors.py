@@ -7,11 +7,11 @@ class PlanningError(Exception):
     """Base class for failures before deterministic query execution."""
 
 
-class OpenAIPlanningError(PlanningError):
+class ModelPlanningError(PlanningError):
     """The model-backed planner could not return a usable structured decision."""
 
 
-class ModelPlanRejectedError(OpenAIPlanningError):
+class ModelPlanRejectedError(ModelPlanningError):
     """The parsed model plan contradicted authoritative request controls."""
 
 
