@@ -1,0 +1,40 @@
+{
+  "studies": [
+    {
+      "protocolSection": {
+        "identificationModule": {
+          "nctId": "NCT00000001",
+          "briefTitle": "A Phase 3 Melanoma Study"
+        },
+        "statusModule": {
+          "overallStatus": "RECRUITING",
+          "startDateStruct": {"date": "2021-04", "type": "ACTUAL"}
+        },
+        "sponsorCollaboratorsModule": {
+          "leadSponsor": {"name": "Example Pharma", "class": "INDUSTRY"}
+        },
+        "conditionsModule": {"conditions": ["Melanoma"]},
+        "designModule": {
+          "studyType": "INTERVENTIONAL",
+          "phases": ["PHASE3"],
+          "enrollmentInfo": {"count": 300, "type": "ESTIMATED"}
+        },
+        "armsInterventionsModule": {
+          "interventions": [
+            {"type": "DRUG", "name": "Pembrolizumab"},
+            {"type": "DRUG", "name": "Pembrolizumab"}
+          ]
+        },
+        "contactsLocationsModule": {
+          "locations": [
+            {"facility": "Site A", "country": "United States"},
+            {"facility": "Site B", "country": "United States"},
+            {"facility": "Site C", "country": "Canada"}
+          ]
+        }
+      }
+    }
+  ],
+  "nextPageToken": "token-2",
+  "totalCount": 2
+}

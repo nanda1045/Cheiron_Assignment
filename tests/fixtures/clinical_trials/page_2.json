@@ -1,0 +1,31 @@
+{
+  "studies": [
+    {
+      "protocolSection": {
+        "identificationModule": {
+          "nctId": "NCT00000002",
+          "briefTitle": "A Phase 2 Melanoma Study"
+        },
+        "statusModule": {
+          "overallStatus": "COMPLETED",
+          "startDateStruct": {"date": "2019", "type": "ACTUAL"}
+        },
+        "sponsorCollaboratorsModule": {
+          "leadSponsor": {"name": "Example University", "class": "OTHER"}
+        },
+        "conditionsModule": {"conditions": ["Melanoma", "Skin Cancer"]},
+        "designModule": {
+          "studyType": "INTERVENTIONAL",
+          "phases": ["PHASE2"],
+          "enrollmentInfo": {"count": 80, "type": "ACTUAL"}
+        },
+        "armsInterventionsModule": {
+          "interventions": [{"type": "DRUG", "name": "Nivolumab"}]
+        },
+        "contactsLocationsModule": {
+          "locations": [{"facility": "Site D", "country": "United States"}]
+        }
+      }
+    }
+  ]
+}
