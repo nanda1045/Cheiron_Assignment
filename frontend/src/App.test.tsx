@@ -168,8 +168,8 @@ describe('App', () => {
     await user.click(screen.getByRole('button', { name: 'Generate evidence view' }))
 
     const alert = await screen.findByRole('alert')
-    expect(alert).toHaveTextContent('Anthropic Claude needs a valid API credential.')
-    expect(alert).toHaveTextContent('Anthropic Claude · Request 2ae72fb3')
+    expect(alert).toHaveTextContent('OpenAI needs a valid API credential.')
+    expect(alert).toHaveTextContent('OpenAI · Request 2ae72fb3')
     expect(alert).not.toHaveTextContent('This request can be retried.')
   })
 })

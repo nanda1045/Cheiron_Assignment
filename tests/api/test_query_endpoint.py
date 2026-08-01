@@ -268,7 +268,7 @@ async def test_query_endpoint_distinguishes_planner_failure_types(
     assert response.status_code == status_code
     assert response.json()["error"]["code"] == code
     assert response.json()["error"]["retryable"] is retryable
-    assert response.json()["error"]["context"] == {"provider": "Anthropic Claude"}
+    assert response.json()["error"]["context"] == {"provider": "OpenAI"}
 
 
 @pytest.mark.asyncio

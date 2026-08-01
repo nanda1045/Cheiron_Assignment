@@ -137,5 +137,5 @@ class CompletenessStatus(StrEnum):
 
 
 class PlannerMode(StrEnum):
-    CLAUDE = "claude"
+    OPENAI = "openai"
     RULES = "rules"

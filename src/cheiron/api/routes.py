@@ -89,34 +89,34 @@ async def query_trials(
             status.HTTP_503_SERVICE_UNAVAILABLE,
             request_id,
             code="planner_not_configured",
-            message="The Anthropic Claude planner is not configured with valid credentials.",
-            context={"provider": "Anthropic Claude"},
+            message="The OpenAI planner is not configured with valid credentials.",
+            context={"provider": "OpenAI"},
         )
     except ModelProviderError:
         return error_response(
             status.HTTP_503_SERVICE_UNAVAILABLE,
             request_id,
             code="planner_unavailable",
-            message="Anthropic Claude is temporarily unavailable to plan this request.",
+            message="OpenAI is temporarily unavailable to plan this request.",
             retryable=True,
-            context={"provider": "Anthropic Claude"},
+            context={"provider": "OpenAI"},
         )
     except ModelRequestError:
         return error_response(
             status.HTTP_502_BAD_GATEWAY,
             request_id,
             code="planner_request_rejected",
-            message="Anthropic Claude rejected the structured planner request.",
-            context={"provider": "Anthropic Claude"},
+            message="OpenAI rejected the structured planner request.",
+            context={"provider": "OpenAI"},
         )
     except ModelOutputError:
         return error_response(
             status.HTTP_502_BAD_GATEWAY,
             request_id,
             code="planner_invalid_response",
-            message="Anthropic Claude returned no usable structured planning decision.",
+            message="OpenAI returned no usable structured planning decision.",
             retryable=True,
-            context={"provider": "Anthropic Claude"},
+            context={"provider": "OpenAI"},
         )
     except ModelPlanningError:
         return error_response(
@@ -124,7 +124,7 @@ async def query_trials(
             request_id,
             code="planner_failed",
             message="The configured planner could not safely plan this request.",
-            context={"provider": "Anthropic Claude"},
+            context={"provider": "OpenAI"},
         )
     except ClinicalTrialsTransientError:
         return error_response(

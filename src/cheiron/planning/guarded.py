@@ -23,7 +23,7 @@ class GuardedPlanner:
             return replace(
                 result,
                 warnings=(
-                    "Claude planning was unavailable; the deterministic fallback was used.",
+                    "OpenAI planning was unavailable; the deterministic fallback was used.",
                     *result.warnings,
                 ),
             )

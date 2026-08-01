@@ -15,6 +15,16 @@ Requirements:
 - [uv](https://docs.astral.sh/uv/)
 - Node.js 24 LTS for the optional demo frontend
 
+Copy `.env.example` to `.env` and add an OpenAI API key. The key is used only by
+the semantic planner; retrieved ClinicalTrials.gov study records are processed
+deterministically inside Cheiron and are not sent to OpenAI.
+
+```dotenv
+CHEIRON_PLANNER_PROVIDER=openai
+CHEIRON_OPENAI_MODEL=gpt-5.4-mini
+OPENAI_API_KEY=your-key-here
+```
+
 ```bash
 uv sync --all-extras
 uv run uvicorn cheiron.main:app --reload

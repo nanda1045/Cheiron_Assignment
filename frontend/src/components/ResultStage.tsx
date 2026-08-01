@@ -553,19 +553,19 @@ function errorPresentation(code: string): { label: string; heading: string } {
   const presentations: Record<string, { label: string; heading: string }> = {
     planner_not_configured: {
       label: 'Planner configuration required',
-      heading: 'Anthropic Claude needs a valid API credential.',
+      heading: 'OpenAI needs a valid API credential.',
     },
     planner_unavailable: {
       label: 'Planner provider unavailable',
-      heading: 'Anthropic Claude could not be reached.',
+      heading: 'OpenAI could not be reached.',
     },
     planner_request_rejected: {
       label: 'Planner request rejected',
-      heading: 'Anthropic Claude rejected the planning contract.',
+      heading: 'OpenAI rejected the planning contract.',
     },
     planner_invalid_response: {
       label: 'Planner response invalid',
-      heading: 'Anthropic Claude returned no usable decision.',
+      heading: 'OpenAI returned no usable decision.',
     },
     source_unavailable: {
       label: 'Source provider unavailable',

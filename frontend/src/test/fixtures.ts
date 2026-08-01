@@ -76,7 +76,7 @@ export const successResponse: VisualizationSuccessResponse = {
     },
   },
   meta: {
-    planner: { mode: 'claude', model: 'claude-test', capability_limited: false },
+    planner: { mode: 'openai', model: 'gpt-5.4-mini', capability_limited: false },
     record_counts: { matched: 52, retrieved: 52, used: 52, excluded: 0 },
     completeness: { status: 'complete', is_complete: true, pages_retrieved: 1, reason: null },
     duration_ms: 417,
@@ -155,9 +155,9 @@ export const plannerConfigurationErrorResponse: ErrorResponse = {
   status: 'error',
   error: {
     code: 'planner_not_configured',
-    message: 'The Anthropic Claude planner is not configured with valid credentials.',
+    message: 'The OpenAI planner is not configured with valid credentials.',
     retryable: false,
-    context: { provider: 'Anthropic Claude' },
+    context: { provider: 'OpenAI' },
   },
 }
 

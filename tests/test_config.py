@@ -5,12 +5,12 @@ import pytest
 from cheiron.config import Settings
 
 
-def test_settings_load_and_mask_anthropic_api_key(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("ANTHROPIC_API_KEY", "unit-test-anthropic-key")
+def test_settings_load_and_mask_openai_api_key(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("OPENAI_API_KEY", "unit-test-openai-key")
 
     settings = Settings(_env_file=None)
 
-    assert settings.anthropic_api_key is not None
-    assert settings.anthropic_api_key.get_secret_value() == "unit-test-anthropic-key"
-    assert "unit-test-anthropic-key" not in repr(settings)
-    assert settings.anthropic_model == "claude-sonnet-5"
+    assert settings.openai_api_key is not None
+    assert settings.openai_api_key.get_secret_value() == "unit-test-openai-key"
+    assert "unit-test-openai-key" not in repr(settings)
+    assert settings.openai_model == "gpt-5.4-mini"

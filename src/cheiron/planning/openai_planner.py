@@ -1,10 +1,10 @@
-"""Claude planner using Anthropic's Pydantic structured-output helper."""
+"""OpenAI planner using Responses API Pydantic structured outputs."""
 
 import json
 
-from anthropic import (
-    AnthropicError,
-    AsyncAnthropic,
+from openai import (
+    APIError,
+    AsyncOpenAI,
     AuthenticationError,
     BadRequestError,
     PermissionDeniedError,
@@ -37,6 +37,11 @@ Success criteria:
 - represent only filters and comparisons supported by the schema
 - use distinct NCT ID count for aggregated trial counts
 - create one named cohort per comparison population
+- interpret "by <category>" as grouping on that dimension, not as a request to choose
+  filter values; for example, "trials by phase" groups all matching trials by phase
+- use distribution with one matching cohort and a bar chart for a category breakdown
+  such as "trials by phase"; use comparison only when the user explicitly names two
+  or more populations to compare, and use grouped_bar_chart only for those populations
 - use start_year with time_series for trends
 - use enrollment histogram for histogram intent
 - use start_year versus unaggregated enrollment for scatter intent
@@ -63,14 +68,14 @@ Repair attempt:
 """
 
 
-class ClaudePlanner:
+class OpenAIPlanner:
     """Produce a plan with the model, then enforce application-owned invariants."""
 
     def __init__(
         self,
-        client: AsyncAnthropic,
+        client: AsyncOpenAI,
         *,
-        model: str = "claude-sonnet-5",
+        model: str = "gpt-5.4-mini",
         guard: ModelPlanGuard | None = None,
         non_visual_planner: RuleBasedPlanner | None = None,
     ) -> None:
@@ -90,7 +95,7 @@ class ClaudePlanner:
                 content=request.model_dump_json(),
             )
             return self._to_result(request, output)
-        except AnthropicError as error:
+        except APIError as error:
             raise self._provider_failure(error) from error
         except (ValidationError, ModelPlanRejectedError) as error:
             return await self._repair(request, error)
@@ -114,7 +119,7 @@ class ClaudePlanner:
                 content=content,
             )
             return self._to_result(request, output)
-        except AnthropicError as error:
+        except APIError as error:
             raise self._provider_failure(error) from error
         except (ValidationError, ModelPlanRejectedError) as repair_error:
             clarification = self._clarification_for_invalid_plan(initial_error, repair_error)
@@ -126,18 +131,19 @@ class ClaudePlanner:
         system: str,
         content: str,
     ) -> ModelPlannerEnvelope:
-        response = await self._client.messages.parse(
+        response = await self._client.responses.parse(
             model=self._model,
-            max_tokens=4_000,
-            system=system,
-            messages=[{"role": "user", "content": content}],
-            output_format=ModelPlannerEnvelope,
+            instructions=system,
+            input=[{"role": "user", "content": content}],
+            text_format=ModelPlannerEnvelope,
+            max_output_tokens=4_000,
+            store=False,
         )
 
-        output = response.parsed_output
+        output = response.output_parsed
         if output is None:
             raise ModelOutputError(
-                "Claude planner returned a refusal or no parsed structured output"
+                "OpenAI planner returned a refusal or no parsed structured output"
             )
         return output
 
@@ -156,7 +162,7 @@ class ClaudePlanner:
         self._guard.validate(request, decision.plan)
         return PlanningResult(
             plan=decision.plan,
-            mode=PlannerMode.CLAUDE,
+            mode=PlannerMode.OPENAI,
             model=self._model,
             capability_limited=False,
             warnings=tuple(decision.warnings),
@@ -214,9 +220,9 @@ class ClaudePlanner:
         )
 
     @staticmethod
-    def _provider_failure(error: AnthropicError) -> ModelPlanningError:
+    def _provider_failure(error: APIError) -> ModelPlanningError:
         if isinstance(error, AuthenticationError | PermissionDeniedError):
-            return PlannerConfigurationError("Anthropic rejected the configured credentials")
+            return PlannerConfigurationError("OpenAI rejected the configured credentials")
         if isinstance(error, BadRequestError):
-            return ModelRequestError("Anthropic rejected the structured planner request")
-        return ModelProviderError("Anthropic planner request failed")
+            return ModelRequestError("OpenAI rejected the structured planner request")
+        return ModelProviderError("OpenAI planner request failed")
