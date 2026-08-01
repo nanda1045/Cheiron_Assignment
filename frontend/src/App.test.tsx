@@ -37,7 +37,7 @@ describe('App', () => {
     expect(await screen.findByText('Breast cancer trials by phase')).toBeVisible()
     expect(screen.getByText('52')).toBeVisible()
     expect(screen.getByText('ClinicalTrials.gov')).toBeVisible()
-    expect(screen.getByText('Phase 1')).toBeVisible()
+    expect(screen.getAllByText('Phase 1')).toHaveLength(2)
 
     const requestInit = fetchMock.mock.calls[0]?.[1]
     expect(JSON.parse(String(requestInit?.body))).toEqual({

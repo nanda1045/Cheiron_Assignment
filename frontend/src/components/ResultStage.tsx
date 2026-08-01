@@ -5,6 +5,7 @@ import type {
   ScalarValue,
   SuccessResponse,
 } from '../api/types.ts'
+import { VisualizationRenderer } from './visualization/VisualizationRenderer.tsx'
 
 interface ResultStageProps {
   response: QueryResponse | null
@@ -138,6 +139,8 @@ function SuccessResult({ response }: { response: SuccessResponse }) {
         <Metric value={response.meta.completeness.pages_retrieved} label="Pages read" />
         <Metric value={`${response.meta.duration_ms}ms`} label="Duration" />
       </div>
+
+      <VisualizationRenderer visualization={visualization} />
 
       <DataPreview response={response} />
 
