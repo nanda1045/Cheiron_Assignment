@@ -1,0 +1,278 @@
+[
+  {
+    "id": "distribution-by-phase",
+    "category": "distribution",
+    "request": {"query": "Show recruiting melanoma trials by phase."},
+    "expected": {
+      "route": "visualization",
+      "intent": "distribution",
+      "visualization": "bar_chart",
+      "dimensions": ["phase"],
+      "measure_field": "nct_id",
+      "aggregation": "count_distinct",
+      "cohort_count": 1,
+      "filters": [
+        {"field": "condition", "values": ["melanoma"]},
+        {"field": "status", "operator": "equals", "values": ["RECRUITING"]}
+      ]
+    }
+  },
+  {
+    "id": "annual-phase-three-trend",
+    "category": "trend",
+    "request": {
+      "query": "How have recruiting Phase 3 breast cancer trials changed each year since 2020?"
+    },
+    "expected": {
+      "route": "visualization",
+      "intent": "trend",
+      "visualization": "time_series",
+      "dimensions": ["start_year"],
+      "measure_field": "nct_id",
+      "aggregation": "count_distinct",
+      "cohort_count": 1,
+      "filters": [
+        {"field": "condition", "values": ["breast cancer"]},
+        {"field": "phase", "operator": "equals", "values": ["PHASE3"]},
+        {"field": "status", "operator": "equals", "values": ["RECRUITING"]},
+        {"field": "start_year", "operator": "gte", "values": [2020]}
+      ]
+    }
+  },
+  {
+    "id": "named-intervention-comparison",
+    "category": "comparison",
+    "request": {
+      "query": "Compare pembrolizumab and nivolumab trials in lung cancer by phase."
+    },
+    "expected": {
+      "route": "visualization",
+      "intent": "comparison",
+      "visualization": "grouped_bar_chart",
+      "dimensions": ["phase"],
+      "measure_field": "nct_id",
+      "aggregation": "count_distinct",
+      "cohort_count": 2,
+      "filters": [
+        {"field": "condition", "values": ["lung cancer"], "minimum_cohort_matches": 2},
+        {"field": "intervention", "values": ["pembrolizumab"]},
+        {"field": "intervention", "values": ["nivolumab"]}
+      ]
+    }
+  },
+  {
+    "id": "leading-sponsors",
+    "category": "distribution",
+    "request": {"query": "Which sponsors lead Phase 3 Alzheimer's disease trials?"},
+    "expected": {
+      "route": "visualization",
+      "intent": "distribution",
+      "visualization": "bar_chart",
+      "dimensions": ["sponsor"],
+      "measure_field": "nct_id",
+      "aggregation": "count_distinct",
+      "cohort_count": 1,
+      "filters": [
+        {"field": "condition", "values": ["Alzheimer's disease"]},
+        {"field": "phase", "operator": "equals", "values": ["PHASE3"]}
+      ]
+    }
+  },
+  {
+    "id": "geographic-country-breakdown",
+    "category": "geographic",
+    "request": {"query": "Show recruiting type 2 diabetes trials by country."},
+    "expected": {
+      "route": "visualization",
+      "intent": "geographic",
+      "visualization": "bar_chart",
+      "dimensions": ["country"],
+      "measure_field": "nct_id",
+      "aggregation": "count_distinct",
+      "cohort_count": 1,
+      "filters": [
+        {"field": "condition", "values": ["type 2 diabetes"]},
+        {"field": "status", "operator": "equals", "values": ["RECRUITING"]}
+      ]
+    }
+  },
+  {
+    "id": "enrollment-histogram",
+    "category": "histogram",
+    "request": {"query": "Plot an enrollment histogram for Phase 2 glioblastoma trials."},
+    "expected": {
+      "route": "visualization",
+      "intent": "histogram",
+      "visualization": "histogram",
+      "dimensions": ["enrollment"],
+      "measure_field": "nct_id",
+      "aggregation": "count_distinct",
+      "cohort_count": 1,
+      "filters": [
+        {"field": "condition", "values": ["glioblastoma"]},
+        {"field": "phase", "operator": "equals", "values": ["PHASE2"]}
+      ]
+    }
+  },
+  {
+    "id": "start-year-enrollment-scatter",
+    "category": "scatter",
+    "request": {
+      "query": "Plot start year against planned enrollment for Phase 3 Alzheimer's disease trials started since 2018."
+    },
+    "expected": {
+      "route": "visualization",
+      "intent": "scatter",
+      "visualization": "scatter_plot",
+      "dimensions": ["start_year"],
+      "measure_field": "enrollment",
+      "aggregation": "none",
+      "cohort_count": 1,
+      "filters": [
+        {"field": "condition", "values": ["Alzheimer's disease"]},
+        {"field": "phase", "operator": "equals", "values": ["PHASE3"]},
+        {"field": "start_year", "operator": "gte", "values": [2018]}
+      ]
+    }
+  },
+  {
+    "id": "sponsor-intervention-network",
+    "category": "relationship",
+    "request": {
+      "query": "Show relationships between lead sponsors and interventions for recruiting Phase 3 melanoma trials started since 2022."
+    },
+    "expected": {
+      "route": "visualization",
+      "intent": "relationship",
+      "visualization": "network_graph",
+      "dimensions": [],
+      "measure_field": "nct_id",
+      "aggregation": "count_distinct",
+      "cohort_count": 1,
+      "relationship_source": "sponsor",
+      "relationship_target": "intervention",
+      "filters": [
+        {"field": "condition", "values": ["melanoma"]},
+        {"field": "phase", "operator": "equals", "values": ["PHASE3"]},
+        {"field": "status", "operator": "equals", "values": ["RECRUITING"]},
+        {"field": "start_year", "operator": "gte", "values": [2022]}
+      ]
+    }
+  },
+  {
+    "id": "sponsor-class-breakdown",
+    "category": "distribution",
+    "request": {"query": "Break down breast cancer trials by sponsor class."},
+    "expected": {
+      "route": "visualization",
+      "intent": "distribution",
+      "visualization": "bar_chart",
+      "dimensions": ["sponsor_class"],
+      "measure_field": "nct_id",
+      "aggregation": "count_distinct",
+      "cohort_count": 1,
+      "filters": [{"field": "condition", "values": ["breast cancer"]}]
+    }
+  },
+  {
+    "id": "intervention-type-breakdown",
+    "category": "distribution",
+    "request": {"query": "Show lung cancer trials by intervention type."},
+    "expected": {
+      "route": "visualization",
+      "intent": "distribution",
+      "visualization": "bar_chart",
+      "dimensions": ["intervention_type"],
+      "measure_field": "nct_id",
+      "aggregation": "count_distinct",
+      "cohort_count": 1,
+      "filters": [{"field": "condition", "values": ["lung cancer"]}]
+    }
+  },
+  {
+    "id": "scalar-trial-count",
+    "category": "scalar",
+    "request": {"query": "How many recruiting melanoma trials are there?"},
+    "expected": {
+      "route": "scalar_answer",
+      "measure_field": "nct_id",
+      "aggregation": "count_distinct",
+      "cohort_count": 1,
+      "filters": [
+        {"field": "condition", "values": ["melanoma"]},
+        {"field": "status", "operator": "equals", "values": ["RECRUITING"]}
+      ]
+    }
+  },
+  {
+    "id": "scalar-average-enrollment",
+    "category": "scalar",
+    "request": {"query": "What is the average planned enrollment for completed Phase 2 glioblastoma trials?"},
+    "expected": {
+      "route": "scalar_answer",
+      "measure_field": "enrollment",
+      "aggregation": "average",
+      "cohort_count": 1,
+      "filters": [
+        {"field": "condition", "values": ["glioblastoma"]},
+        {"field": "phase", "operator": "equals", "values": ["PHASE2"]},
+        {"field": "status", "operator": "equals", "values": ["COMPLETED"]}
+      ]
+    }
+  },
+  {
+    "id": "unsupported-treatment-advice",
+    "category": "unsupported",
+    "request": {"query": "What is the best treatment for melanoma?"},
+    "expected": {"route": "unsupported"}
+  },
+  {
+    "id": "ambiguous-comparison",
+    "category": "clarification",
+    "request": {"query": "Compare two treatments for lung cancer by phase."},
+    "expected": {"route": "clarification"}
+  },
+  {
+    "id": "structured-filters-authoritative",
+    "category": "control-precedence",
+    "request": {
+      "query": "Show completed lung cancer trials by phase.",
+      "filters": {"conditions": ["Melanoma"], "statuses": ["RECRUITING"]}
+    },
+    "expected": {
+      "route": "visualization",
+      "intent": "distribution",
+      "visualization": "bar_chart",
+      "dimensions": ["phase"],
+      "measure_field": "nct_id",
+      "aggregation": "count_distinct",
+      "cohort_count": 1,
+      "filters": [
+        {"field": "condition", "values": ["Melanoma"]},
+        {"field": "status", "operator": "equals", "values": ["RECRUITING"]}
+      ],
+      "forbidden_filters": [
+        {"field": "condition", "values": ["lung cancer"]},
+        {"field": "status", "values": ["COMPLETED"]}
+      ]
+    }
+  },
+  {
+    "id": "compatible-chart-preference",
+    "category": "control-precedence",
+    "request": {
+      "query": "Show melanoma trials by phase.",
+      "options": {"preferred_visualization": "bar_chart"}
+    },
+    "expected": {
+      "route": "visualization",
+      "intent": "distribution",
+      "visualization": "bar_chart",
+      "dimensions": ["phase"],
+      "measure_field": "nct_id",
+      "aggregation": "count_distinct",
+      "cohort_count": 1,
+      "filters": [{"field": "condition", "values": ["melanoma"]}]
+    }
+  }
+]

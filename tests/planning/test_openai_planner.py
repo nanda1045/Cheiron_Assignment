@@ -132,6 +132,7 @@ async def test_openai_planner_uses_strict_responses_parse_contract() -> None:
     assert arguments["instructions"] == PLANNER_INSTRUCTIONS
     assert arguments["text_format"] is ModelPlannerEnvelope
     assert arguments["max_output_tokens"] == 4_000
+    assert arguments["reasoning"] == {"effort": "low"}
     assert arguments["store"] is False
     assert arguments["input"] == [{"role": "user", "content": request.model_dump_json()}]
 
@@ -191,6 +192,7 @@ async def test_installed_sdk_serializes_and_parses_the_strict_schema() -> None:
     assert result.plan == distribution_plan()
     payload = json.loads(route.calls.last.request.content)
     assert payload["max_output_tokens"] == 4_000
+    assert payload["reasoning"] == {"effort": "low"}
     assert payload["store"] is False
     assert payload["input"] == [{"role": "user", "content": request.model_dump_json()}]
     schema = payload["text"]["format"]["schema"]

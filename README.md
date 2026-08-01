@@ -53,6 +53,18 @@ uv run ruff check .
 uv run mypy src
 ```
 
+Run the live semantic planner benchmark separately because it consumes OpenAI
+API credits:
+
+```bash
+uv run python scripts/run_planner_evals.py --min-pass-rate 0.90
+```
+
+The curated benchmark checks route selection, analysis intent, visualization,
+dimensions, measures, cohorts, relationships, and required or forbidden filters.
+The reviewed `gpt-5.4-mini` baseline passed 16/16 cases and 130/130 semantic
+assertions; see [`evals/README.md`](evals/README.md) for scope and limitations.
+
 Run the frontend quality gates with:
 
 ```bash

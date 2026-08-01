@@ -28,3 +28,4 @@ frontend/dist/
 # Generated artifacts
 submission/
 *.zip
+evals/reports/*.json
