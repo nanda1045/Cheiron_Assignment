@@ -1,5 +1,5 @@
-import { render, screen } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { fireEvent, render, screen } from '@testing-library/react'
+import { describe, expect, it, vi } from 'vitest'
 
 import type {
   CartesianVisualization,
@@ -25,7 +25,7 @@ describe('VisualizationRenderer', () => {
 
       const { container } = render(<VisualizationRenderer visualization={visualization} />)
 
-      expect(screen.getByRole('img', { name: /Breast cancer trials by phase/ })).toBeVisible()
+      expect(screen.getByRole('group', { name: /Breast cancer trials by phase/ })).toBeVisible()
       const marks = [...container.querySelectorAll<SVGRectElement>('.chart-bar')]
       expect(marks.map((mark) => mark.dataset.datumId)).toEqual(['phase-1', 'phase-2'])
       expect(marks.every((mark) => mark.getAttribute('tabindex') === '0')).toBe(true)
@@ -87,10 +87,10 @@ describe('VisualizationRenderer', () => {
 
     const { container } = render(<VisualizationRenderer visualization={visualization} />)
 
-    expect(screen.getByRole('img', { name: /Sponsor to intervention network/ })).toBeVisible()
+    expect(screen.getByRole('group', { name: /Sponsor to intervention network/ })).toBeVisible()
     expect(container.querySelectorAll('[data-node-id]')).toHaveLength(2)
     expect(container.querySelectorAll('[data-edge-id]')).toHaveLength(1)
-    expect(screen.getByLabelText(/sponsor-a to drug-b: 2 shared trials/)).toBeVisible()
+    expect(screen.getByLabelText(/Sponsor A ↔ Drug B: 2 shared trials/)).toBeVisible()
   })
 
   it('shows a stable empty state when the renderer receives no records', () => {
@@ -104,6 +104,31 @@ describe('VisualizationRenderer', () => {
     )
 
     expect(screen.getByText('No data points were returned for this visualization.')).toBeVisible()
+  })
+
+  it('selects the exact datum with pointer and keyboard activation', () => {
+    const onSelectTarget = vi.fn()
+    render(
+      <VisualizationRenderer
+        visualization={barVisualization}
+        onSelectTarget={onSelectTarget}
+      />,
+    )
+    const mark = screen.getByRole('button', {
+      name: /Trial phase: Phase 1; Studies: 18/,
+    })
+
+    fireEvent.click(mark)
+    fireEvent.keyDown(mark, { key: 'Enter' })
+    fireEvent.keyDown(mark, { key: ' ' })
+
+    expect(onSelectTarget).toHaveBeenCalledTimes(3)
+    expect(onSelectTarget).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        key: 'datum:phase-1',
+        citationIds: ['cit-nct00000001'],
+      }),
+    )
   })
 })
 

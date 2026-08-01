@@ -1,3 +1,5 @@
+import { useState } from 'react'
+
 import type {
   ClarificationResponse,
   ErrorResponse,
@@ -5,6 +7,12 @@ import type {
   ScalarValue,
   SuccessResponse,
 } from '../api/types.ts'
+import { EvidenceInspector } from './provenance/EvidenceInspector.tsx'
+import {
+  datumEvidenceTarget,
+  nodeEvidenceTarget,
+  type EvidenceTarget,
+} from './visualization/evidenceSelection.ts'
 import { VisualizationRenderer } from './visualization/VisualizationRenderer.tsx'
 
 interface ResultStageProps {
@@ -38,7 +46,7 @@ export function ResultStage({
       ) : transportError ? (
         <TransportError message={transportError} />
       ) : response?.status === 'ok' ? (
-        <SuccessResult response={response} />
+        <SuccessResult key={response.request_id} response={response} />
       ) : response?.status === 'clarification_required' ? (
         <ClarificationResult response={response} onSuggestion={onSuggestion} />
       ) : response?.status === 'error' ? (
@@ -116,6 +124,7 @@ function LoadingState() {
 function SuccessResult({ response }: { response: SuccessResponse }) {
   const visualization = response.visualization
   const citationCount = Object.keys(response.provenance.citations).length
+  const [selectedTarget, setSelectedTarget] = useState<EvidenceTarget | null>(null)
 
   return (
     <div className="success-result">
@@ -140,9 +149,24 @@ function SuccessResult({ response }: { response: SuccessResponse }) {
         <Metric value={`${response.meta.duration_ms}ms`} label="Duration" />
       </div>
 
-      <VisualizationRenderer visualization={visualization} />
+      <VisualizationRenderer
+        visualization={visualization}
+        selectedTargetKey={selectedTarget?.key}
+        onSelectTarget={setSelectedTarget}
+      />
 
-      <DataPreview response={response} />
+      <EvidenceInspector
+        key={selectedTarget?.key ?? 'no-selection'}
+        target={selectedTarget}
+        citations={response.provenance.citations}
+        source={response.provenance.source}
+      />
+
+      <DataPreview
+        response={response}
+        selectedTargetKey={selectedTarget?.key}
+        onSelectTarget={setSelectedTarget}
+      />
 
       <footer className="result-footer">
         <div>
@@ -171,7 +195,15 @@ function Metric({ value, label }: { value: string | number; label: string }) {
   )
 }
 
-function DataPreview({ response }: { response: SuccessResponse }) {
+function DataPreview({
+  response,
+  selectedTargetKey,
+  onSelectTarget,
+}: {
+  response: SuccessResponse
+  selectedTargetKey?: string
+  onSelectTarget: (target: EvidenceTarget) => void
+}) {
   const visualization = response.visualization
 
   if (visualization.type === 'network_graph') {
@@ -185,16 +217,27 @@ function DataPreview({ response }: { response: SuccessResponse }) {
                 <th>Entity</th>
                 <th>Type</th>
                 <th>Connections</th>
+                <th>Evidence</th>
               </tr>
             </thead>
             <tbody>
-              {visualization.data.nodes.slice(0, 6).map((node) => (
-                <tr key={node.id}>
-                  <td>{node.label}</td>
-                  <td>{formatToken(node.entity_type)}</td>
-                  <td>{node.value}</td>
-                </tr>
-              ))}
+              {visualization.data.nodes.slice(0, 6).map((node) => {
+                const target = nodeEvidenceTarget(node)
+                return (
+                  <tr key={node.id}>
+                    <td>{node.label}</td>
+                    <td>{formatToken(node.entity_type)}</td>
+                    <td>{node.value}</td>
+                    <td>
+                      <EvidenceButton
+                        target={target}
+                        isSelected={target.key === selectedTargetKey}
+                        onSelectTarget={onSelectTarget}
+                      />
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         </div>
@@ -225,18 +268,50 @@ function DataPreview({ response }: { response: SuccessResponse }) {
             </tr>
           </thead>
           <tbody>
-            {records.slice(0, 6).map((record) => (
-              <tr key={record.id}>
-                {columns.map((column) => (
-                  <td key={column}>{formatValue(record.values[column])}</td>
-                ))}
-                <td>{record.citation_ids.length} refs</td>
-              </tr>
-            ))}
+            {records.slice(0, 6).map((record) => {
+              const target = datumEvidenceTarget(record, visualization)
+              return (
+                <tr key={record.id}>
+                  {columns.map((column) => (
+                    <td key={column}>{formatValue(record.values[column])}</td>
+                  ))}
+                  <td>
+                    <EvidenceButton
+                      target={target}
+                      isSelected={target.key === selectedTargetKey}
+                      onSelectTarget={onSelectTarget}
+                    />
+                  </td>
+                </tr>
+              )
+            })}
           </tbody>
         </table>
       </div>
     </div>
+  )
+}
+
+function EvidenceButton({
+  target,
+  isSelected,
+  onSelectTarget,
+}: {
+  target: EvidenceTarget
+  isSelected: boolean
+  onSelectTarget: (target: EvidenceTarget) => void
+}) {
+  return (
+    <button
+      className={`inspect-evidence${isSelected ? ' inspect-evidence--selected' : ''}`}
+      type="button"
+      aria-pressed={isSelected}
+      aria-label={`Inspect evidence for ${target.title}`}
+      onClick={() => onSelectTarget(target)}
+    >
+      {target.citationIds.length} refs
+      <span aria-hidden="true">→</span>
+    </button>
   )
 }
 

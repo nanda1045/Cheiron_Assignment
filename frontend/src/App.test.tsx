@@ -39,6 +39,17 @@ describe('App', () => {
     expect(screen.getByText('ClinicalTrials.gov')).toBeVisible()
     expect(screen.getAllByText('Phase 1')).toHaveLength(2)
 
+    await user.click(
+      screen.getByRole('button', { name: /Trial phase: Phase 1; Studies: 18/ }),
+    )
+    expect(screen.getByRole('link', { name: /NCT00000001/ })).toHaveAttribute(
+      'href',
+      'https://clinicaltrials.gov/study/NCT00000001',
+    )
+    expect(
+      screen.getByText('protocolSection.identificationModule.nctId'),
+    ).toBeVisible()
+
     const requestInit = fetchMock.mock.calls[0]?.[1]
     expect(JSON.parse(String(requestInit?.body))).toEqual({
       schema_version: '1.0',

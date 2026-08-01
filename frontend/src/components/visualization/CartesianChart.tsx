@@ -3,6 +3,7 @@ import type {
   ChannelEncoding,
   TabularDatum,
 } from '../../api/types.ts'
+import type { KeyboardEvent } from 'react'
 import {
   CHART_HEIGHT,
   CHART_WIDTH,
@@ -20,9 +21,16 @@ import {
   truncateLabel,
   uniqueCategories,
 } from './chartMath.ts'
+import {
+  datumEvidenceTarget,
+  isEvidenceActivationKey,
+  type EvidenceTarget,
+} from './evidenceSelection.ts'
 
 interface CartesianChartProps {
   visualization: CartesianVisualization
+  selectedTargetKey?: string | null
+  onSelectTarget?: (target: EvidenceTarget) => void
 }
 
 interface NumericPoint {
@@ -32,7 +40,11 @@ interface NumericPoint {
   series: string
 }
 
-export function CartesianChart({ visualization }: CartesianChartProps) {
+export function CartesianChart({
+  visualization,
+  selectedTargetKey = null,
+  onSelectTarget = () => undefined,
+}: CartesianChartProps) {
   const records = sortRecords(visualization.data.records, visualization.encoding.x)
   if (records.length === 0) {
     return <ChartEmpty />
@@ -43,11 +55,32 @@ export function CartesianChart({ visualization }: CartesianChartProps) {
       case 'bar_chart':
       case 'grouped_bar_chart':
       case 'histogram':
-        return <BarChart visualization={visualization} records={records} />
+        return (
+          <BarChart
+            visualization={visualization}
+            records={records}
+            selectedTargetKey={selectedTargetKey}
+            onSelectTarget={onSelectTarget}
+          />
+        )
       case 'time_series':
-        return <LineChart visualization={visualization} records={records} />
+        return (
+          <LineChart
+            visualization={visualization}
+            records={records}
+            selectedTargetKey={selectedTargetKey}
+            onSelectTarget={onSelectTarget}
+          />
+        )
       case 'scatter_plot':
-        return <ScatterChart visualization={visualization} records={records} />
+        return (
+          <ScatterChart
+            visualization={visualization}
+            records={records}
+            selectedTargetKey={selectedTargetKey}
+            onSelectTarget={onSelectTarget}
+          />
+        )
     }
   })()
 
@@ -56,12 +89,14 @@ export function CartesianChart({ visualization }: CartesianChartProps) {
       <svg
         className="evidence-chart"
         viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`}
-        role="img"
+        role="group"
         aria-label={`${visualization.title}. ${visualization.description}`}
       >
         {chart}
       </svg>
-      <figcaption>Interactive visualization. Focus a data mark to inspect its value.</figcaption>
+      <figcaption>
+        Interactive visualization. Select a data mark to inspect its value and provenance.
+      </figcaption>
     </figure>
   )
 }
@@ -69,6 +104,8 @@ export function CartesianChart({ visualization }: CartesianChartProps) {
 function BarChart({
   visualization,
   records,
+  selectedTargetKey,
+  onSelectTarget = () => undefined,
 }: CartesianChartProps & { records: TabularDatum[] }) {
   const { x, y, color } = visualization.encoding
   const categories = uniqueCategories(records, x.field)
@@ -102,11 +139,13 @@ function BarChart({
         const label = `${x.title}: ${xValue}; ${y.title}: ${formatNumber(value)}${
           color ? `; ${color.title}: ${seriesValue}` : ''
         }`
+        const evidenceTarget = datumEvidenceTarget(record, visualization)
+        const isSelected = evidenceTarget.key === selectedTargetKey
 
         return (
           <rect
             key={record.id}
-            className="chart-mark chart-bar"
+            className={`chart-mark chart-bar${isSelected ? ' chart-mark--selected' : ''}`}
             x={barX}
             y={barY}
             width={barWidth}
@@ -114,8 +153,12 @@ function BarChart({
             rx={3}
             fill={seriesColor(seriesIndex)}
             tabIndex={0}
+            role="button"
+            aria-pressed={isSelected}
             aria-label={label}
             data-datum-id={record.id}
+            onClick={() => onSelectTarget(evidenceTarget)}
+            onKeyDown={(event) => activateEvidenceTarget(event, evidenceTarget, onSelectTarget)}
           >
             <title>{label}</title>
           </rect>
@@ -129,6 +172,8 @@ function BarChart({
 function LineChart({
   visualization,
   records,
+  selectedTargetKey,
+  onSelectTarget = () => undefined,
 }: CartesianChartProps & { records: TabularDatum[] }) {
   const { x, y, color } = visualization.encoding
   const points = numericPoints(records, x.field, y.field, color?.field)
@@ -162,20 +207,32 @@ function LineChart({
             />
             {seriesPoints.map((point) => {
               const coordinates = pointCoordinates(point, xDomain, yDomain)
-              const label = `${x.title}: ${formatChannelNumber(point.x, x)}; ${y.title}: ${formatNumber(point.y)}${
-                color ? `; ${color.title}: ${seriesName}` : ''
-              }`
+              const label = [
+                `${x.title}: ${formatChannelNumber(point.x, x)}`,
+                `${y.title}: ${formatNumber(point.y)}`,
+                color ? `${color.title}: ${seriesName}` : null,
+              ]
+                .filter((part) => part !== null)
+                .join('; ')
+              const evidenceTarget = datumEvidenceTarget(point.record, visualization)
+              const isSelected = evidenceTarget.key === selectedTargetKey
               return (
                 <circle
                   key={point.record.id}
-                  className="chart-mark chart-point"
+                  className={`chart-mark chart-point${isSelected ? ' chart-mark--selected' : ''}`}
                   cx={coordinates.x}
                   cy={coordinates.y}
                   r={5}
                   fill={seriesColor(seriesIndex)}
                   tabIndex={0}
+                  role="button"
+                  aria-pressed={isSelected}
                   aria-label={label}
                   data-datum-id={point.record.id}
+                  onClick={() => onSelectTarget(evidenceTarget)}
+                  onKeyDown={(event) =>
+                    activateEvidenceTarget(event, evidenceTarget, onSelectTarget)
+                  }
                 >
                   <title>{label}</title>
                 </circle>
@@ -192,6 +249,8 @@ function LineChart({
 function ScatterChart({
   visualization,
   records,
+  selectedTargetKey,
+  onSelectTarget = () => undefined,
 }: CartesianChartProps & { records: TabularDatum[] }) {
   const { x, y, color, size } = visualization.encoding
   const points = numericPoints(records, x.field, y.field, color?.field)
@@ -219,17 +278,23 @@ function ScatterChart({
         const label = `${x.title}: ${formatChannelNumber(point.x, x)}; ${y.title}: ${formatNumber(point.y)}${
           color ? `; ${color.title}: ${point.series}` : ''
         }`
+        const evidenceTarget = datumEvidenceTarget(point.record, visualization)
+        const isSelected = evidenceTarget.key === selectedTargetKey
         return (
           <circle
             key={point.record.id}
-            className="chart-mark chart-point"
+            className={`chart-mark chart-point${isSelected ? ' chart-mark--selected' : ''}`}
             cx={coordinates.x}
             cy={coordinates.y}
             r={radius}
             fill={seriesColor(seriesIndex)}
             tabIndex={0}
+            role="button"
+            aria-pressed={isSelected}
             aria-label={label}
             data-datum-id={point.record.id}
+            onClick={() => onSelectTarget(evidenceTarget)}
+            onKeyDown={(event) => activateEvidenceTarget(event, evidenceTarget, onSelectTarget)}
           >
             <title>{label}</title>
           </circle>
@@ -390,6 +455,17 @@ function paddedExtent(values: number[]): [number, number] {
 
 function formatChannelNumber(value: number, encoding: ChannelEncoding): string {
   return encoding.data_type === 'temporal' ? String(Math.round(value)) : formatNumber(value)
+}
+
+function activateEvidenceTarget(
+  event: KeyboardEvent<SVGElement>,
+  target: EvidenceTarget,
+  onSelectTarget: (target: EvidenceTarget) => void,
+) {
+  if (isEvidenceActivationKey(event.key)) {
+    event.preventDefault()
+    onSelectTarget(target)
+  }
 }
 
 function ChartEmptyGraphic() {

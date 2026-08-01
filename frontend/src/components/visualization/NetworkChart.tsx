@@ -1,4 +1,5 @@
 import type { NetworkVisualization } from '../../api/types.ts'
+import type { KeyboardEvent } from 'react'
 import {
   CHART_HEIGHT,
   CHART_WIDTH,
@@ -8,9 +9,17 @@ import {
   seriesColor,
   truncateLabel,
 } from './chartMath.ts'
+import {
+  edgeEvidenceTarget,
+  isEvidenceActivationKey,
+  nodeEvidenceTarget,
+  type EvidenceTarget,
+} from './evidenceSelection.ts'
 
 interface NetworkChartProps {
   visualization: NetworkVisualization
+  selectedTargetKey?: string | null
+  onSelectTarget?: (target: EvidenceTarget) => void
 }
 
 interface NodePosition {
@@ -18,7 +27,11 @@ interface NodePosition {
   y: number
 }
 
-export function NetworkChart({ visualization }: NetworkChartProps) {
+export function NetworkChart({
+  visualization,
+  selectedTargetKey = null,
+  onSelectTarget = () => undefined,
+}: NetworkChartProps) {
   const { nodes, edges } = visualization.data
   if (nodes.length === 0) {
     return <div className="chart-empty">No network nodes were returned for this visualization.</div>
@@ -42,13 +55,14 @@ export function NetworkChart({ visualization }: NetworkChartProps) {
   const maxWeight = Math.max(...edges.map((edge) => edge.weight), 1)
   const entityTypes = [...new Set(nodes.map((node) => node.entity_type))]
   const entityPositions = new Map(entityTypes.map((value, index) => [value, index]))
+  const nodesById = new Map(nodes.map((node) => [node.id, node]))
 
   return (
     <figure className="chart-shell chart-shell--network">
       <svg
         className="evidence-chart network-chart"
         viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`}
-        role="img"
+        role="group"
         aria-label={`${visualization.title}. ${visualization.description}`}
       >
         <g className="network-edges">
@@ -58,19 +72,27 @@ export function NetworkChart({ visualization }: NetworkChartProps) {
             if (!source || !target) {
               return null
             }
-            const label = `${edge.source} to ${edge.target}: ${edge.weight} shared trials`
+            const evidenceTarget = edgeEvidenceTarget(edge, nodesById)
+            const label = `${evidenceTarget.title}: ${edge.weight} shared trials`
+            const isSelected = evidenceTarget.key === selectedTargetKey
             return (
               <line
                 key={edge.id}
-                className="chart-mark network-edge"
+                className={`chart-mark network-edge${isSelected ? ' chart-mark--selected' : ''}`}
                 x1={source.x}
                 y1={source.y}
                 x2={target.x}
                 y2={target.y}
                 strokeWidth={1 + (edge.weight / maxWeight) * 6}
                 tabIndex={0}
+                role="button"
+                aria-pressed={isSelected}
                 aria-label={label}
                 data-edge-id={edge.id}
+                onClick={() => onSelectTarget(evidenceTarget)}
+                onKeyDown={(event) =>
+                  activateEvidenceTarget(event, evidenceTarget, onSelectTarget)
+                }
               >
                 <title>{label}</title>
               </line>
@@ -83,13 +105,21 @@ export function NetworkChart({ visualization }: NetworkChartProps) {
             const typeIndex = entityPositions.get(node.entity_type) ?? 0
             const nodeRadius = scaleLinear(node.value, nodeDomain, [12, 24])
             const label = `${node.label}; ${node.entity_type}; ${formatNumber(node.value)} trials`
+            const evidenceTarget = nodeEvidenceTarget(node)
+            const isSelected = evidenceTarget.key === selectedTargetKey
             return (
               <g
                 key={node.id}
-                className="chart-mark network-node"
+                className={`chart-mark network-node${isSelected ? ' chart-mark--selected' : ''}`}
                 tabIndex={0}
+                role="button"
+                aria-pressed={isSelected}
                 aria-label={label}
                 data-node-id={node.id}
+                onClick={() => onSelectTarget(evidenceTarget)}
+                onKeyDown={(event) =>
+                  activateEvidenceTarget(event, evidenceTarget, onSelectTarget)
+                }
               >
                 <title>{label}</title>
                 <circle
@@ -114,7 +144,20 @@ export function NetworkChart({ visualization }: NetworkChartProps) {
           ))}
         </g>
       </svg>
-      <figcaption>Interactive network. Focus a node or connection to inspect its value.</figcaption>
+      <figcaption>
+        Interactive network. Select a node or connection to inspect its value and provenance.
+      </figcaption>
     </figure>
   )
+}
+
+function activateEvidenceTarget(
+  event: KeyboardEvent<SVGElement>,
+  target: EvidenceTarget,
+  onSelectTarget: (target: EvidenceTarget) => void,
+) {
+  if (isEvidenceActivationKey(event.key)) {
+    event.preventDefault()
+    onSelectTarget(target)
+  }
 }
