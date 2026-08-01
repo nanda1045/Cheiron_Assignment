@@ -27,7 +27,11 @@ from cheiron.domain.response import (
 )
 from cheiron.planning.errors import (
     ClarificationNeeded,
+    ModelOutputError,
     ModelPlanningError,
+    ModelProviderError,
+    ModelRequestError,
+    PlannerConfigurationError,
     UnsupportedQuestion,
 )
 
@@ -80,13 +84,47 @@ async def query_trials(
                 "max_studies": error.max_studies,
             },
         )
-    except ModelPlanningError:
+    except PlannerConfigurationError:
+        return error_response(
+            status.HTTP_503_SERVICE_UNAVAILABLE,
+            request_id,
+            code="planner_not_configured",
+            message="The Anthropic Claude planner is not configured with valid credentials.",
+            context={"provider": "Anthropic Claude"},
+        )
+    except ModelProviderError:
         return error_response(
             status.HTTP_503_SERVICE_UNAVAILABLE,
             request_id,
             code="planner_unavailable",
-            message="The configured planner is temporarily unavailable.",
+            message="Anthropic Claude is temporarily unavailable to plan this request.",
             retryable=True,
+            context={"provider": "Anthropic Claude"},
+        )
+    except ModelRequestError:
+        return error_response(
+            status.HTTP_502_BAD_GATEWAY,
+            request_id,
+            code="planner_request_rejected",
+            message="Anthropic Claude rejected the structured planner request.",
+            context={"provider": "Anthropic Claude"},
+        )
+    except ModelOutputError:
+        return error_response(
+            status.HTTP_502_BAD_GATEWAY,
+            request_id,
+            code="planner_invalid_response",
+            message="Anthropic Claude returned no usable structured planning decision.",
+            retryable=True,
+            context={"provider": "Anthropic Claude"},
+        )
+    except ModelPlanningError:
+        return error_response(
+            status.HTTP_502_BAD_GATEWAY,
+            request_id,
+            code="planner_failed",
+            message="The configured planner could not safely plan this request.",
+            context={"provider": "Anthropic Claude"},
         )
     except ClinicalTrialsTransientError:
         return error_response(
@@ -95,13 +133,18 @@ async def query_trials(
             code="source_unavailable",
             message="ClinicalTrials.gov is temporarily unavailable.",
             retryable=True,
+            context={"provider": "ClinicalTrials.gov"},
         )
-    except ClinicalTrialsRequestError:
+    except ClinicalTrialsRequestError as error:
         return error_response(
             status.HTTP_502_BAD_GATEWAY,
             request_id,
             code="source_rejected_query",
             message="ClinicalTrials.gov rejected the compiled query.",
+            context={
+                "provider": "ClinicalTrials.gov",
+                "upstream_status": error.status_code,
+            },
         )
     except (ClinicalTrialsResponseError, PaginationError):
         return error_response(
@@ -110,6 +153,7 @@ async def query_trials(
             code="source_contract_error",
             message="ClinicalTrials.gov returned an incomplete or invalid response.",
             retryable=True,
+            context={"provider": "ClinicalTrials.gov"},
         )
     except AnalysisError:
         return error_response(

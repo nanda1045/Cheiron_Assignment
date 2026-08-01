@@ -2,15 +2,25 @@
 
 import json
 
-from anthropic import AnthropicError, AsyncAnthropic
+from anthropic import (
+    AnthropicError,
+    AsyncAnthropic,
+    AuthenticationError,
+    BadRequestError,
+    PermissionDeniedError,
+)
 from pydantic import ValidationError
 
 from cheiron.domain.enums import PlannerMode
 from cheiron.domain.request import QueryRequest
 from cheiron.planning.errors import (
     ClarificationNeeded,
+    ModelOutputError,
     ModelPlanningError,
     ModelPlanRejectedError,
+    ModelProviderError,
+    ModelRequestError,
+    PlannerConfigurationError,
     UnsupportedQuestion,
 )
 from cheiron.planning.guard import ModelPlanGuard
@@ -80,7 +90,7 @@ class ClaudePlanner:
             )
             return self._to_result(request, output)
         except AnthropicError as error:
-            raise ModelPlanningError("Claude planner request failed") from error
+            raise self._provider_failure(error) from error
         except (ValidationError, ModelPlanRejectedError) as error:
             return await self._repair(request, error)
 
@@ -104,7 +114,7 @@ class ClaudePlanner:
             )
             return self._to_result(request, output)
         except AnthropicError as error:
-            raise ModelPlanningError("Claude planner repair request failed") from error
+            raise self._provider_failure(error) from error
         except (ValidationError, ModelPlanRejectedError) as repair_error:
             clarification = self._clarification_for_invalid_plan(initial_error, repair_error)
             raise clarification from repair_error
@@ -125,7 +135,7 @@ class ClaudePlanner:
 
         output = response.parsed_output
         if output is None:
-            raise ModelPlanningError(
+            raise ModelOutputError(
                 "Claude planner returned a refusal or no parsed structured output"
             )
         return output
@@ -207,3 +217,11 @@ class ClaudePlanner:
             missing_fields=("analysis_definition",),
             suggestions=("Count recruiting melanoma trials by phase.",),
         )
+
+    @staticmethod
+    def _provider_failure(error: AnthropicError) -> ModelPlanningError:
+        if isinstance(error, AuthenticationError | PermissionDeniedError):
+            return PlannerConfigurationError("Anthropic rejected the configured credentials")
+        if isinstance(error, BadRequestError):
+            return ModelRequestError("Anthropic rejected the structured planner request")
+        return ModelProviderError("Anthropic planner request failed")

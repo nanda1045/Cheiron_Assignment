@@ -136,6 +136,7 @@ function SuccessResult({ response }: { response: SuccessResponse }) {
 function VisualizationResult({ response }: { response: VisualizationSuccessResponse }) {
   const visualization = response.visualization
   const citationCount = Object.keys(response.provenance.citations).length
+  const hasData = response.meta.record_counts.used > 0
   const [selectedTarget, setSelectedTarget] = useState<EvidenceTarget | null>(null)
 
   return (
@@ -146,10 +147,7 @@ function VisualizationResult({ response }: { response: VisualizationSuccessRespo
           <h3>{visualization.title}</h3>
           <p>{visualization.description}</p>
         </div>
-        <span className="complete-badge">
-          <CheckIcon />
-          Complete
-        </span>
+        <ResultStatusBadge response={response} />
       </div>
 
       <blockquote>{response.query.interpretation}</blockquote>
@@ -161,24 +159,30 @@ function VisualizationResult({ response }: { response: VisualizationSuccessRespo
         <Metric value={`${response.meta.duration_ms}ms`} label="Duration" />
       </div>
 
-      <VisualizationRenderer
-        visualization={visualization}
-        selectedTargetKey={selectedTarget?.key}
-        onSelectTarget={setSelectedTarget}
-      />
+      {hasData ? (
+        <>
+          <VisualizationRenderer
+            visualization={visualization}
+            selectedTargetKey={selectedTarget?.key}
+            onSelectTarget={setSelectedTarget}
+          />
 
-      <EvidenceInspector
-        key={selectedTarget?.key ?? 'no-selection'}
-        target={selectedTarget}
-        citations={response.provenance.citations}
-        source={response.provenance.source}
-      />
+          <EvidenceInspector
+            key={selectedTarget?.key ?? 'no-selection'}
+            target={selectedTarget}
+            citations={response.provenance.citations}
+            source={response.provenance.source}
+          />
 
-      <DataPreview
-        response={response}
-        selectedTargetKey={selectedTarget?.key}
-        onSelectTarget={setSelectedTarget}
-      />
+          <DataPreview
+            response={response}
+            selectedTargetKey={selectedTarget?.key}
+            onSelectTarget={setSelectedTarget}
+          />
+        </>
+      ) : (
+        <NoResultsNotice response={response} />
+      )}
 
       <ResultFooter response={response} />
     </div>
@@ -188,6 +192,7 @@ function VisualizationResult({ response }: { response: VisualizationSuccessRespo
 function ScalarAnswerResult({ response }: { response: ScalarAnswerSuccessResponse }) {
   const answer = response.answer
   const citationCount = Object.keys(response.provenance.citations).length
+  const hasEvidence = response.meta.record_counts.used > 0
   const target: EvidenceTarget = {
     key: 'answer:scalar',
     kind: 'answer',
@@ -209,10 +214,7 @@ function ScalarAnswerResult({ response }: { response: ScalarAnswerSuccessRespons
           <h3>{answer.title}</h3>
           <p>One deterministic aggregate from the matching source records.</p>
         </div>
-        <span className="complete-badge">
-          <CheckIcon />
-          Complete
-        </span>
+        <ResultStatusBadge response={response} />
       </div>
 
       <blockquote>{response.query.interpretation}</blockquote>
@@ -233,11 +235,13 @@ function ScalarAnswerResult({ response }: { response: ScalarAnswerSuccessRespons
         <p>{answer.text}</p>
       </section>
 
-      <EvidenceInspector
-        target={target}
-        citations={response.provenance.citations}
-        source={response.provenance.source}
-      />
+      {hasEvidence ? (
+        <EvidenceInspector
+          target={target}
+          citations={response.provenance.citations}
+          source={response.provenance.source}
+        />
+      ) : null}
 
       <ResultFooter response={response} />
     </div>
@@ -260,6 +264,50 @@ function ResultFooter({ response }: { response: SuccessResponse }) {
         <strong>{response.request_id.slice(0, 8)}</strong>
       </div>
     </footer>
+  )
+}
+
+function ResultStatusBadge({ response }: { response: SuccessResponse }) {
+  const used = response.meta.record_counts.used
+  let label = 'Complete'
+  if (response.result_type === 'scalar_answer' && response.answer.value === null) {
+    label = 'No reported data'
+  } else if (used === 0 && response.meta.record_counts.matched === 0) {
+    label = 'No matches'
+  } else if (used === 0) {
+    label = 'No usable data'
+  }
+  const isEmpty = used === 0
+
+  return (
+    <span className={`complete-badge${isEmpty ? ' complete-badge--empty' : ''}`}>
+      {isEmpty ? <span aria-hidden="true">—</span> : <CheckIcon />}
+      {label}
+    </span>
+  )
+}
+
+function NoResultsNotice({ response }: { response: VisualizationSuccessResponse }) {
+  const sourceMatchedNothing = response.meta.record_counts.matched === 0
+  return (
+    <section className="no-results-notice" role="status">
+      <span aria-hidden="true">∅</span>
+      <div>
+        <p className="eyebrow">
+          {sourceMatchedNothing ? 'No source matches' : 'No usable data points'}
+        </p>
+        <h4>
+          {sourceMatchedNothing
+            ? 'No ClinicalTrials.gov studies matched every requested filter.'
+            : 'Retrieved studies could not produce the requested visualization.'}
+        </h4>
+        <p>
+          {sourceMatchedNothing
+            ? 'The source query completed successfully with zero matches. Try broadening a condition, phase, status, or date filter.'
+            : `${response.meta.record_counts.retrieved} studies were retrieved, but none retained all required filters and analysis fields.`}
+        </p>
+      </div>
+    </section>
   )
 }
 
@@ -438,14 +486,17 @@ function ClarificationResult({
 }
 
 function ErrorResult({ response }: { response: ErrorResponse }) {
+  const presentation = errorPresentation(response.error.code)
+  const provider = response.error.context.provider
   return (
     <div className="message-state error-state" role="alert">
       <span className="message-symbol" aria-hidden="true">!</span>
-      <p className="eyebrow">{formatToken(response.error.code)}</p>
-      <h3>The evidence view could not be completed.</h3>
+      <p className="eyebrow">{presentation.label}</p>
+      <h3>{presentation.heading}</h3>
       <p>{response.error.message}</p>
       <small>
-        Request {response.request_id.slice(0, 8)}
+        {typeof provider === 'string' ? `${provider} · ` : ''}Request{' '}
+        {response.request_id.slice(0, 8)}
         {response.error.retryable ? ' · This request can be retried.' : ''}
       </small>
     </div>
@@ -496,6 +547,43 @@ function CheckIcon() {
       <path d="m5 10 3 3 7-7" />
     </svg>
   )
+}
+
+function errorPresentation(code: string): { label: string; heading: string } {
+  const presentations: Record<string, { label: string; heading: string }> = {
+    planner_not_configured: {
+      label: 'Planner configuration required',
+      heading: 'Anthropic Claude needs a valid API credential.',
+    },
+    planner_unavailable: {
+      label: 'Planner provider unavailable',
+      heading: 'Anthropic Claude could not be reached.',
+    },
+    planner_request_rejected: {
+      label: 'Planner request rejected',
+      heading: 'Anthropic Claude rejected the planning contract.',
+    },
+    planner_invalid_response: {
+      label: 'Planner response invalid',
+      heading: 'Anthropic Claude returned no usable decision.',
+    },
+    source_unavailable: {
+      label: 'Source provider unavailable',
+      heading: 'ClinicalTrials.gov could not be reached.',
+    },
+    source_rejected_query: {
+      label: 'Source query rejected',
+      heading: 'ClinicalTrials.gov rejected the compiled query.',
+    },
+    source_contract_error: {
+      label: 'Source response invalid',
+      heading: 'ClinicalTrials.gov returned an incomplete response.',
+    },
+  }
+  return presentations[code] ?? {
+    label: formatToken(code),
+    heading: 'The evidence view could not be completed.',
+  }
 }
 
 function formatToken(value: string): string {

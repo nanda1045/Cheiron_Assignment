@@ -6,6 +6,8 @@ import App from './App.tsx'
 import {
   clarificationResponse,
   errorResponse,
+  noResultsResponse,
+  plannerConfigurationErrorResponse,
   scalarAnswerResponse,
   successResponse,
   unsupportedResponse,
@@ -99,6 +101,25 @@ describe('App', () => {
     expect(screen.getByRole('link', { name: /NCT00000001/ })).toBeVisible()
   })
 
+  it('labels a completed empty source query as no matches', async () => {
+    const user = userEvent.setup()
+    vi.stubGlobal(
+      'fetch',
+      vi.fn<typeof fetch>().mockResolvedValue(jsonResponse(noResultsResponse)),
+    )
+    render(<App />)
+
+    await user.type(screen.getByLabelText('Clinical-trial question'), 'Show impossible trials')
+    await user.click(screen.getByRole('button', { name: 'Generate evidence view' }))
+
+    expect(await screen.findByText('No matches')).toBeVisible()
+    expect(
+      screen.getByText('No ClinicalTrials.gov studies matched every requested filter.'),
+    ).toBeVisible()
+    expect(screen.queryByText('Complete')).not.toBeInTheDocument()
+    expect(screen.queryByText('Select a data mark to trace its evidence.')).not.toBeInTheDocument()
+  })
+
   it('renders unsupported questions with a supported alternative', async () => {
     const user = userEvent.setup()
     vi.stubGlobal(
@@ -131,6 +152,25 @@ describe('App', () => {
       'ClinicalTrials.gov is temporarily unavailable.',
     )
     await waitFor(() => expect(screen.getByText(/Request 229d8f25/)).toBeVisible())
+  })
+
+  it('distinguishes planner configuration errors from retryable outages', async () => {
+    const user = userEvent.setup()
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn<typeof fetch>()
+        .mockResolvedValue(jsonResponse(plannerConfigurationErrorResponse, { status: 503 })),
+    )
+    render(<App />)
+
+    await user.type(screen.getByLabelText('Clinical-trial question'), 'Count recruiting trials')
+    await user.click(screen.getByRole('button', { name: 'Generate evidence view' }))
+
+    const alert = await screen.findByRole('alert')
+    expect(alert).toHaveTextContent('Anthropic Claude needs a valid API credential.')
+    expect(alert).toHaveTextContent('Anthropic Claude · Request 2ae72fb3')
+    expect(alert).not.toHaveTextContent('This request can be retried.')
   })
 })
 

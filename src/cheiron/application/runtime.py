@@ -10,7 +10,7 @@ from cheiron.config import Settings
 from cheiron.domain.request import QueryRequest
 from cheiron.planning.base import Planner
 from cheiron.planning.claude_planner import ClaudePlanner
-from cheiron.planning.errors import ModelPlanningError
+from cheiron.planning.errors import PlannerConfigurationError
 from cheiron.planning.guarded import GuardedPlanner
 from cheiron.planning.models import PlanningResult
 from cheiron.planning.rules import RuleBasedPlanner
@@ -21,7 +21,7 @@ class UnavailableClaudePlanner:
 
     async def plan(self, request: QueryRequest) -> PlanningResult:
         del request
-        raise ModelPlanningError("Claude planning requires ANTHROPIC_API_KEY")
+        raise PlannerConfigurationError("Claude planning requires ANTHROPIC_API_KEY")
 
 
 @dataclass(slots=True)

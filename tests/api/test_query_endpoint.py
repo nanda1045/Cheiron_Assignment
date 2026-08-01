@@ -10,6 +10,7 @@ from httpx import ASGITransport, AsyncClient
 
 from cheiron.application.query_service import QueryService
 from cheiron.clinical_trials.errors import (
+    ClinicalTrialsRequestError,
     ClinicalTrialsTransientError,
     QueryTooBroadError,
 )
@@ -19,6 +20,12 @@ from cheiron.config import Settings
 from cheiron.domain.request import QueryRequest
 from cheiron.domain.response import SuccessResponse
 from cheiron.main import create_app
+from cheiron.planning.errors import (
+    ModelOutputError,
+    ModelProviderError,
+    ModelRequestError,
+    PlannerConfigurationError,
+)
 from cheiron.planning.rules import RuleBasedPlanner
 
 
@@ -72,6 +79,20 @@ class CrashingQueryService(QueryService):
     ) -> SuccessResponse:
         del request, request_id
         raise RuntimeError("sensitive implementation detail")
+
+
+class FailingQueryService(QueryService):
+    def __init__(self, failure: Exception) -> None:
+        self._failure = failure
+
+    async def execute(
+        self,
+        request: QueryRequest,
+        *,
+        request_id: UUID,
+    ) -> SuccessResponse:
+        del request, request_id
+        raise self._failure
 
 
 def query_app(gateway: EndpointGateway, *, max_studies: int = 20_000) -> FastAPI:
@@ -205,7 +226,71 @@ async def test_query_endpoint_maps_transient_source_failure_to_retryable_503() -
         "code": "source_unavailable",
         "message": "ClinicalTrials.gov is temporarily unavailable.",
         "retryable": True,
-        "context": {},
+        "context": {"provider": "ClinicalTrials.gov"},
+    }
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("failure", "status_code", "code", "retryable"),
+    [
+        (
+            PlannerConfigurationError("missing key"),
+            503,
+            "planner_not_configured",
+            False,
+        ),
+        (ModelProviderError("timeout"), 503, "planner_unavailable", True),
+        (ModelRequestError("bad request"), 502, "planner_request_rejected", False),
+        (ModelOutputError("no output"), 502, "planner_invalid_response", True),
+    ],
+)
+async def test_query_endpoint_distinguishes_planner_failure_types(
+    failure: Exception,
+    status_code: int,
+    code: str,
+    retryable: bool,
+) -> None:
+    settings = Settings(_env_file=None, planner_provider="rules")
+    app = create_app(
+        settings=settings,
+        query_service=FailingQueryService(failure),
+    )
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+    ) as client:
+        response = await client.post(
+            "/v1/query",
+            json={"query": "Show melanoma trials by phase"},
+        )
+
+    assert response.status_code == status_code
+    assert response.json()["error"]["code"] == code
+    assert response.json()["error"]["retryable"] is retryable
+    assert response.json()["error"]["context"] == {"provider": "Anthropic Claude"}
+
+
+@pytest.mark.asyncio
+async def test_source_rejection_discloses_provider_and_upstream_status() -> None:
+    settings = Settings(_env_file=None, planner_provider="rules")
+    app = create_app(
+        settings=settings,
+        query_service=FailingQueryService(ClinicalTrialsRequestError(400, "bad query")),
+    )
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+    ) as client:
+        response = await client.post(
+            "/v1/query",
+            json={"query": "Show melanoma trials by phase"},
+        )
+
+    assert response.status_code == 502
+    assert response.json()["error"]["context"] == {
+        "provider": "ClinicalTrials.gov",
+        "upstream_status": 400,
     }
 
 

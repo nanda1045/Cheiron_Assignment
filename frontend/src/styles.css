@@ -697,6 +697,17 @@ main {
   stroke-linejoin: round;
 }
 
+.complete-badge--empty {
+  color: #c2d0cb;
+  background: rgba(150, 178, 169, 0.09);
+}
+
+.complete-badge--empty > span {
+  font-family: 'DM Mono', monospace;
+  font-size: 14px;
+  line-height: 1;
+}
+
 .success-result blockquote {
   margin: 30px 0 0;
   padding: 13px 18px;
@@ -789,6 +800,48 @@ main {
   margin: 4px 0 0;
   color: #afc2bb;
   font-size: 12px;
+  line-height: 1.65;
+}
+
+.no-results-notice {
+  min-height: 230px;
+  margin-bottom: 18px;
+  padding: clamp(26px, 5vw, 48px);
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  border: 1px dashed rgba(150, 178, 169, 0.3);
+  border-radius: 12px;
+  background: rgba(3, 27, 24, 0.48);
+}
+
+.no-results-notice > span {
+  width: 58px;
+  height: 58px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(150, 178, 169, 0.34);
+  border-radius: 50%;
+  color: #a8bbb5;
+  font-family: 'DM Mono', monospace;
+  font-size: 22px;
+}
+
+.no-results-notice h4 {
+  margin: 0;
+  color: #e8f1ed;
+  font-size: clamp(20px, 3vw, 30px);
+  font-weight: 500;
+  line-height: 1.15;
+  letter-spacing: -0.035em;
+}
+
+.no-results-notice > div > p:last-child {
+  max-width: 590px;
+  margin: 12px 0 0;
+  color: #91a8a0;
+  font-size: 11px;
   line-height: 1.65;
 }
 
@@ -1521,6 +1574,16 @@ main {
 
   .complete-badge {
     margin-top: 20px;
+  }
+
+  .no-results-notice {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .answer-card > strong {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .metric-strip {

@@ -8,7 +8,12 @@ from unittest.mock import AsyncMock, MagicMock
 import httpx
 import pytest
 import respx
-from anthropic import APIConnectionError, AsyncAnthropic
+from anthropic import (
+    APIConnectionError,
+    AsyncAnthropic,
+    AuthenticationError,
+    BadRequestError,
+)
 from pydantic import ValidationError
 
 from cheiron.domain.answer import ScalarAnswerPlan
@@ -37,7 +42,9 @@ from cheiron.planning.claude_planner import (
 )
 from cheiron.planning.errors import (
     ClarificationNeeded,
-    ModelPlanningError,
+    ModelOutputError,
+    ModelRequestError,
+    PlannerConfigurationError,
     UnsupportedQuestion,
 )
 from cheiron.planning.guarded import GuardedPlanner
@@ -337,7 +344,28 @@ async def test_model_unsupported_decision_is_preserved() -> None:
 async def test_missing_parsed_output_is_a_typed_model_failure() -> None:
     client, _ = mock_client(None)
 
-    with pytest.raises(ModelPlanningError, match="no parsed structured output"):
+    with pytest.raises(ModelOutputError, match="no parsed structured output"):
+        await ClaudePlanner(client).plan(QueryRequest(query="Show trials by phase"))
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("provider_error_type", "expected_error"),
+    [
+        (AuthenticationError, PlannerConfigurationError),
+        (BadRequestError, ModelRequestError),
+    ],
+)
+async def test_claude_provider_errors_keep_actionable_failure_type(
+    provider_error_type: type[AuthenticationError] | type[BadRequestError],
+    expected_error: type[PlannerConfigurationError] | type[ModelRequestError],
+) -> None:
+    request = httpx.Request("POST", "https://api.anthropic.com/v1/messages")
+    response = httpx.Response(401, request=request)
+    provider_error = provider_error_type("provider rejected request", response=response, body=None)
+    client, _ = mock_client(error=provider_error)
+
+    with pytest.raises(expected_error):
         await ClaudePlanner(client).plan(QueryRequest(query="Show trials by phase"))
 
 

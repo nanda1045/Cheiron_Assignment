@@ -11,6 +11,22 @@ class ModelPlanningError(PlanningError):
     """The model-backed planner could not return a usable structured decision."""
 
 
+class PlannerConfigurationError(ModelPlanningError):
+    """The selected model provider is missing or rejected its credentials."""
+
+
+class ModelProviderError(ModelPlanningError):
+    """The model provider could not be reached or returned a transient failure."""
+
+
+class ModelRequestError(ModelPlanningError):
+    """The model provider rejected the application's planner request."""
+
+
+class ModelOutputError(ModelPlanningError):
+    """The model provider responded without a usable structured decision."""
+
+
 class ModelPlanRejectedError(ModelPlanningError):
     """The parsed model plan contradicted authoritative request controls."""
 

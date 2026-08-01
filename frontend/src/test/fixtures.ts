@@ -1,4 +1,5 @@
 import type {
+  CartesianVisualization,
   ClarificationResponse,
   ErrorResponse,
   ScalarAnswerSuccessResponse,
@@ -108,6 +109,23 @@ export const scalarAnswerResponse: ScalarAnswerSuccessResponse = {
   },
 }
 
+export const noResultsResponse: VisualizationSuccessResponse = {
+  ...successResponse,
+  request_id: 'f925e5b8-7128-4d76-81a7-55d07c16e895',
+  visualization: {
+    ...(successResponse.visualization as CartesianVisualization),
+    data: { kind: 'tabular', records: [] },
+  },
+  provenance: {
+    ...successResponse.provenance,
+    citations: {},
+  },
+  meta: {
+    ...successResponse.meta,
+    record_counts: { matched: 0, retrieved: 0, used: 0, excluded: 0 },
+  },
+}
+
 export const clarificationResponse: ClarificationResponse = {
   schema_version: '1.0',
   request_id: '7e6a8f7e-909d-4932-92fa-fc50b5a68ca3',
@@ -127,7 +145,19 @@ export const errorResponse: ErrorResponse = {
     code: 'source_unavailable',
     message: 'ClinicalTrials.gov is temporarily unavailable.',
     retryable: true,
-    context: {},
+    context: { provider: 'ClinicalTrials.gov' },
+  },
+}
+
+export const plannerConfigurationErrorResponse: ErrorResponse = {
+  schema_version: '1.0',
+  request_id: '2ae72fb3-29c7-4177-afb5-62cf64d0743e',
+  status: 'error',
+  error: {
+    code: 'planner_not_configured',
+    message: 'The Anthropic Claude planner is not configured with valid credentials.',
+    retryable: false,
+    context: { provider: 'Anthropic Claude' },
   },
 }
 
