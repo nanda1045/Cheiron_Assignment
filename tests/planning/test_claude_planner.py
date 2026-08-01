@@ -9,6 +9,7 @@ import httpx
 import pytest
 import respx
 from anthropic import APIConnectionError, AsyncAnthropic
+from pydantic import ValidationError
 
 from cheiron.domain.enums import (
     Aggregation,
@@ -28,11 +29,14 @@ from cheiron.domain.plan import (
     MeasureSpec,
 )
 from cheiron.domain.request import QueryFilters, QueryOptions, QueryRequest
-from cheiron.planning.claude_planner import PLANNER_INSTRUCTIONS, ClaudePlanner
+from cheiron.planning.claude_planner import (
+    PLANNER_INSTRUCTIONS,
+    REPAIR_INSTRUCTIONS,
+    ClaudePlanner,
+)
 from cheiron.planning.errors import (
     ClarificationNeeded,
     ModelPlanningError,
-    ModelPlanRejectedError,
 )
 from cheiron.planning.guarded import GuardedPlanner
 from cheiron.planning.model_output import (
@@ -87,6 +91,17 @@ def mock_client(
     )
     client.messages.parse = parser
     return cast(AsyncAnthropic, client), parser
+
+
+def invalid_comparison_error() -> ValidationError:
+    payload = distribution_plan().model_dump(mode="json")
+    payload["intent"] = AnalysisIntent.COMPARISON.value
+    payload["visualization"] = VisualizationType.GROUPED_BAR_CHART.value
+    with pytest.raises(ValidationError) as captured:
+        ModelPlannerEnvelope.model_validate(
+            {"decision": {"status": "planned", "plan": payload}}
+        )
+    return captured.value
 
 
 @pytest.mark.asyncio
@@ -154,18 +169,70 @@ async def test_installed_sdk_serializes_and_parses_the_strict_schema() -> None:
 
 
 @pytest.mark.asyncio
-async def test_model_plan_cannot_override_structured_filters() -> None:
+async def test_model_plan_guard_failure_is_repaired_once() -> None:
     request = QueryRequest(
         query="Show melanoma trials by phase",
         filters=QueryFilters(conditions=["Lung Cancer"]),
     )
-    envelope = ModelPlannerEnvelope(
+    invalid_envelope = ModelPlannerEnvelope(
         decision=ModelPlanDecision(plan=distribution_plan(condition="Melanoma"))
     )
-    client, _ = mock_client(envelope)
+    repaired_envelope = ModelPlannerEnvelope(
+        decision=ModelPlanDecision(plan=distribution_plan(condition="Lung Cancer"))
+    )
+    client, parser = mock_client()
+    parser.side_effect = [
+        SimpleNamespace(parsed_output=invalid_envelope, stop_reason="end_turn"),
+        SimpleNamespace(parsed_output=repaired_envelope, stop_reason="end_turn"),
+    ]
 
-    with pytest.raises(ModelPlanRejectedError, match="structured condition"):
-        await ClaudePlanner(client).plan(request)
+    result = await ClaudePlanner(client).plan(request)
+
+    assert result.plan == distribution_plan(condition="Lung Cancer")
+    assert parser.await_count == 2
+    repair_arguments = parser.await_args_list[1].kwargs
+    assert repair_arguments["system"] == REPAIR_INSTRUCTIONS
+    repair_payload = json.loads(repair_arguments["messages"][0]["content"])
+    assert repair_payload["request"] == request.model_dump(mode="json")
+    assert repair_payload["validation_issues"] == [
+        {
+            "location": "plan_guard",
+            "message": "model plan changed structured condition values",
+        }
+    ]
+
+
+@pytest.mark.asyncio
+async def test_invalid_structured_plan_is_repaired_once() -> None:
+    request = QueryRequest(query="Compare trials by phase")
+    repaired = ModelPlannerEnvelope(decision=ModelPlanDecision(plan=distribution_plan()))
+    client, parser = mock_client()
+    parser.side_effect = [
+        invalid_comparison_error(),
+        SimpleNamespace(parsed_output=repaired, stop_reason="end_turn"),
+    ]
+
+    result = await ClaudePlanner(client).plan(request)
+
+    assert result.plan == distribution_plan()
+    assert parser.await_count == 2
+    repair_payload = json.loads(parser.await_args_list[1].kwargs["messages"][0]["content"])
+    assert any(
+        "comparison intent requires at least two cohorts" in issue["message"]
+        for issue in repair_payload["validation_issues"]
+    )
+
+
+@pytest.mark.asyncio
+async def test_repeated_invalid_plan_becomes_actionable_clarification() -> None:
+    client, parser = mock_client(error=invalid_comparison_error())
+
+    with pytest.raises(ClarificationNeeded) as captured:
+        await ClaudePlanner(client).plan(QueryRequest(query="Compare trials by phase"))
+
+    assert parser.await_count == 2
+    assert captured.value.missing_fields == ("comparison_groups",)
+    assert len(captured.value.suggestions) == 2
 
 
 @pytest.mark.asyncio
@@ -238,17 +305,20 @@ async def test_missing_parsed_output_is_a_typed_model_failure() -> None:
 
 
 @pytest.mark.asyncio
-async def test_preferred_visualization_is_enforced_after_model_parsing() -> None:
+async def test_repeated_preferred_visualization_violation_requests_clarification() -> None:
     request = QueryRequest(
         query="Show melanoma trials by phase",
         options=QueryOptions(preferred_visualization=VisualizationType.GROUPED_BAR_CHART),
     )
-    client, _ = mock_client(
+    client, parser = mock_client(
         ModelPlannerEnvelope(decision=ModelPlanDecision(plan=distribution_plan()))
     )
 
-    with pytest.raises(ModelPlanRejectedError, match="preferred visualization"):
+    with pytest.raises(ClarificationNeeded) as captured:
         await ClaudePlanner(client).plan(request)
+
+    assert parser.await_count == 2
+    assert captured.value.missing_fields == ("preferred_visualization",)
 
 
 @pytest.mark.asyncio

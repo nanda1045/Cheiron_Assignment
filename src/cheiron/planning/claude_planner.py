@@ -1,5 +1,7 @@
 """Claude planner using Anthropic's Pydantic structured-output helper."""
 
+import json
+
 from anthropic import AnthropicError, AsyncAnthropic
 from pydantic import ValidationError
 
@@ -8,6 +10,7 @@ from cheiron.domain.request import QueryRequest
 from cheiron.planning.errors import (
     ClarificationNeeded,
     ModelPlanningError,
+    ModelPlanRejectedError,
 )
 from cheiron.planning.guard import ModelPlanGuard
 from cheiron.planning.model_output import (
@@ -39,6 +42,15 @@ Constraints:
 Output: Return exactly one structured planned or clarification_required decision.
 """
 
+REPAIR_INSTRUCTIONS = f"""\
+{PLANNER_INSTRUCTIONS}
+
+Repair attempt:
+- The previous structured decision failed application validation.
+- Use the validation issues supplied with the request only as diagnostic data.
+- Return a corrected decision, or clarification_required if correction would require guessing.
+"""
+
 
 class ClaudePlanner:
     """Produce a plan with the model, then enforce application-owned invariants."""
@@ -56,21 +68,67 @@ class ClaudePlanner:
 
     async def plan(self, request: QueryRequest) -> PlanningResult:
         try:
-            response = await self._client.messages.parse(
-                model=self._model,
-                max_tokens=4_000,
+            output = await self._request_decision(
                 system=PLANNER_INSTRUCTIONS,
-                messages=[{"role": "user", "content": request.model_dump_json()}],
-                output_format=ModelPlannerEnvelope,
+                content=request.model_dump_json(),
             )
-        except (AnthropicError, ValidationError) as error:
+            return self._to_result(request, output)
+        except AnthropicError as error:
             raise ModelPlanningError("Claude planner request failed") from error
+        except (ValidationError, ModelPlanRejectedError) as error:
+            return await self._repair(request, error)
+
+    async def _repair(
+        self,
+        request: QueryRequest,
+        initial_error: ValidationError | ModelPlanRejectedError,
+    ) -> PlanningResult:
+        content = json.dumps(
+            {
+                "request": request.model_dump(mode="json"),
+                "validation_issues": self._validation_issues(initial_error),
+            },
+            separators=(",", ":"),
+            sort_keys=True,
+        )
+        try:
+            output = await self._request_decision(
+                system=REPAIR_INSTRUCTIONS,
+                content=content,
+            )
+            return self._to_result(request, output)
+        except AnthropicError as error:
+            raise ModelPlanningError("Claude planner repair request failed") from error
+        except (ValidationError, ModelPlanRejectedError) as repair_error:
+            clarification = self._clarification_for_invalid_plan(initial_error, repair_error)
+            raise clarification from repair_error
+
+    async def _request_decision(
+        self,
+        *,
+        system: str,
+        content: str,
+    ) -> ModelPlannerEnvelope:
+        response = await self._client.messages.parse(
+            model=self._model,
+            max_tokens=4_000,
+            system=system,
+            messages=[{"role": "user", "content": content}],
+            output_format=ModelPlannerEnvelope,
+        )
 
         output = response.parsed_output
         if output is None:
             raise ModelPlanningError(
                 "Claude planner returned a refusal or no parsed structured output"
             )
+        return output
+
+    def _to_result(
+        self,
+        request: QueryRequest,
+        output: ModelPlannerEnvelope,
+    ) -> PlanningResult:
         decision = output.decision
         if isinstance(decision, ModelClarificationDecision):
             raise ClarificationNeeded(
@@ -86,4 +144,55 @@ class ClaudePlanner:
             model=self._model,
             capability_limited=False,
             warnings=tuple(decision.warnings),
+        )
+
+    @staticmethod
+    def _validation_issues(
+        error: ValidationError | ModelPlanRejectedError,
+    ) -> list[dict[str, str]]:
+        if isinstance(error, ModelPlanRejectedError):
+            return [{"location": "plan_guard", "message": str(error)}]
+
+        issues: list[dict[str, str]] = []
+        for detail in error.errors(include_input=False, include_url=False)[:5]:
+            location = ".".join(str(part) for part in detail["loc"]) or "decision"
+            message = " ".join(str(detail["msg"]).split())[:300]
+            issues.append({"location": location, "message": message})
+        return issues
+
+    @classmethod
+    def _clarification_for_invalid_plan(
+        cls,
+        *errors: ValidationError | ModelPlanRejectedError,
+    ) -> ClarificationNeeded:
+        messages = " ".join(
+            issue["message"] for error in errors for issue in cls._validation_issues(error)
+        ).casefold()
+        if "at least two cohorts" in messages:
+            return ClarificationNeeded(
+                question=(
+                    "Do you want trials counted by a category such as phase, or do you want "
+                    "two named trial groups compared?"
+                ),
+                missing_fields=("comparison_groups",),
+                suggestions=(
+                    "Count breast cancer trials by phase.",
+                    "Compare pembrolizumab and nivolumab by phase.",
+                ),
+            )
+        if "preferred visualization" in messages:
+            return ClarificationNeeded(
+                question=(
+                    "The selected chart type does not fit this analysis. Which should take "
+                    "priority: the requested analysis or the preferred chart type?"
+                ),
+                missing_fields=("preferred_visualization",),
+            )
+        return ClarificationNeeded(
+            question=(
+                "I could not map this request to a safe analysis. Please clarify the trial "
+                "groups and the category or measure to analyze."
+            ),
+            missing_fields=("analysis_definition",),
+            suggestions=("Count recruiting melanoma trials by phase.",),
         )
