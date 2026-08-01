@@ -52,7 +52,6 @@ from cheiron.planning.model_output import (
     ModelClarificationDecision,
     ModelPlanDecision,
     ModelPlannerEnvelope,
-    ModelUnsupportedDecision,
 )
 from cheiron.planning.rules import RuleBasedPlanner
 
@@ -86,14 +85,6 @@ def distribution_plan(*, condition: str = "Melanoma") -> AnalysisPlan:
         dimensions=[DimensionSpec(field=DimensionField.PHASE)],
         measure=trial_count_measure(),
         visualization=VisualizationType.BAR_CHART,
-    )
-
-
-def scalar_count_plan() -> ScalarAnswerPlan:
-    return ScalarAnswerPlan(
-        interpretation="Count distinct matching clinical trials.",
-        cohorts=[CohortSpec(id="matching", label="Matching trials")],
-        measure=trial_count_measure(),
     )
 
 
@@ -315,29 +306,33 @@ async def test_model_clarification_is_preserved() -> None:
 
 
 @pytest.mark.asyncio
-async def test_model_can_choose_typed_scalar_answer() -> None:
-    plan = scalar_count_plan()
-    client, _ = mock_client(ModelPlannerEnvelope(decision=ModelPlanDecision(plan=plan)))
+async def test_scalar_answer_routes_without_expanding_claude_schema() -> None:
+    client, parser = mock_client()
 
     result = await ClaudePlanner(client).plan(
         QueryRequest(query="How many recruiting melanoma trials are there?")
     )
 
-    assert result.plan == plan
+    assert isinstance(result.plan, ScalarAnswerPlan)
+    parser.assert_not_awaited()
 
 
 @pytest.mark.asyncio
-async def test_model_unsupported_decision_is_preserved() -> None:
-    decision = ModelUnsupportedDecision(
-        reason="Treatment recommendations are not supported by trial metadata.",
-        suggestions=["Count recruiting melanoma trials."],
-    )
-    client, _ = mock_client(ModelPlannerEnvelope(decision=decision))
+async def test_unsupported_question_routes_without_calling_claude() -> None:
+    client, parser = mock_client()
 
     with pytest.raises(UnsupportedQuestion) as captured:
-        await ClaudePlanner(client).plan(QueryRequest(query="What treatment should I take?"))
+        await ClaudePlanner(client).plan(QueryRequest(query="What is the best treatment?"))
 
-    assert captured.value.suggestions == ("Count recruiting melanoma trials.",)
+    assert captured.value.suggestions
+    parser.assert_not_awaited()
+
+
+def test_claude_schema_excludes_non_visual_plan_contracts() -> None:
+    schema = json.dumps(ModelPlannerEnvelope.model_json_schema())
+
+    assert "scalar_answer" not in schema
+    assert '"unsupported"' not in schema
 
 
 @pytest.mark.asyncio

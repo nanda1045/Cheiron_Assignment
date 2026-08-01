@@ -115,21 +115,11 @@ class RuleBasedPlanner:
     """Parse a deliberately small, documented grammar without guessing clinical facts."""
 
     async def plan(self, request: QueryRequest) -> PlanningResult:
+        non_visual = self.plan_non_visual(request)
+        if non_visual is not None:
+            return non_visual
+
         query = self._normalize(request.query)
-        unsupported_reason = self._unsupported_reason(query)
-        if unsupported_reason is not None:
-            raise UnsupportedQuestion(
-                reason=unsupported_reason,
-                suggestions=(
-                    "Count recruiting trials for a condition.",
-                    "Show trials grouped by phase.",
-                ),
-            )
-
-        scalar_measure = self._scalar_measure(query)
-        if scalar_measure is not None:
-            return self._scalar_answer(request, query, scalar_measure)
-
         intent = self._detect_intent(query)
         shape = self._shape(intent, query)
         shape = self._apply_visualization_preference(shape, request)
@@ -195,6 +185,25 @@ class RuleBasedPlanner:
                 "filters; nuanced clinical language may require clarification.",
             ),
         )
+
+    def plan_non_visual(self, request: QueryRequest) -> PlanningResult | None:
+        """Handle bounded scalar and unsupported routes without a model call."""
+
+        query = self._normalize(request.query)
+        unsupported_reason = self._unsupported_reason(query)
+        if unsupported_reason is not None:
+            raise UnsupportedQuestion(
+                reason=unsupported_reason,
+                suggestions=(
+                    "Count recruiting trials for a condition.",
+                    "Show trials grouped by phase.",
+                ),
+            )
+
+        scalar_measure = self._scalar_measure(query)
+        if scalar_measure is not None:
+            return self._scalar_answer(request, query, scalar_measure)
+        return None
 
     def _scalar_answer(
         self,
