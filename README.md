@@ -11,6 +11,14 @@ questions, Cheiron deliberately supports bounded scalar questions such as
 "How many recruiting melanoma trials are there?" Questions requiring medical
 advice, efficacy judgments, causality, or prognosis are rejected as unsupported.
 
+## Demo
+
+[Watch the Cheiron application demo](demo/Cheiron_demo.mov) (1 minute 54 seconds,
+no audio). The recording demonstrates natural-language clinical-trial queries,
+multiple visualization types, datum-level ClinicalTrials.gov provenance, and a
+safe pivot from an unsupported medical-advice request to supported trial
+analysis.
+
 ## What is implemented
 
 - Bar and grouped-bar charts
