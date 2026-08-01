@@ -5,6 +5,7 @@ from time import monotonic
 from typing import Protocol
 from uuid import UUID
 
+from cheiron.analysis.answer import ScalarAnswerPipeline
 from cheiron.analysis.pipeline import AnalysisPipeline
 from cheiron.clinical_trials.errors import QueryTooBroadError
 from cheiron.clinical_trials.models import (
@@ -17,8 +18,9 @@ from cheiron.clinical_trials.query_compiler import (
     ClinicalTrialsQueryCompiler,
     CompiledQuery,
 )
+from cheiron.domain.answer import ScalarAnswerPlan
 from cheiron.domain.enums import CompletenessStatus
-from cheiron.domain.plan import CohortSpec
+from cheiron.domain.plan import AnalysisPlan, CohortSpec
 from cheiron.domain.request import QueryRequest
 from cheiron.domain.response import (
     Completeness,
@@ -59,6 +61,7 @@ class QueryService:
         compiler: ClinicalTrialsQueryCompiler | None = None,
         normalizer: TrialNormalizer | None = None,
         analysis: AnalysisPipeline | None = None,
+        answers: ScalarAnswerPipeline | None = None,
     ) -> None:
         self._planner = planner
         self._clinical_trials = clinical_trials
@@ -67,6 +70,7 @@ class QueryService:
         self._compiler = compiler or ClinicalTrialsQueryCompiler()
         self._normalizer = normalizer or TrialNormalizer()
         self._analysis = analysis or AnalysisPipeline()
+        self._answers = answers or ScalarAnswerPipeline()
 
     async def execute(self, request: QueryRequest, *, request_id: UUID) -> SuccessResponse:
         started_at = monotonic()
@@ -86,13 +90,33 @@ class QueryService:
                 self._normalization_warning(warning) for warning in normalized.warnings
             )
 
-        artifacts = self._analysis.run(
-            planning.plan,
-            records_by_cohort,
-            include_citations=request.options.include_citations,
-        )
+        if isinstance(planning.plan, AnalysisPlan):
+            visualization_artifacts = self._analysis.run(
+                planning.plan,
+                records_by_cohort,
+                include_citations=request.options.include_citations,
+            )
+            result_type = "visualization"
+            visualization = visualization_artifacts.visualization
+            answer = None
+            citations = visualization_artifacts.citations
+            used_nct_ids = visualization_artifacts.used_nct_ids
+            analysis_excluded = visualization_artifacts.excluded_count
+        else:
+            assert isinstance(planning.plan, ScalarAnswerPlan)
+            answer_artifacts = self._answers.run(
+                planning.plan,
+                records_by_cohort,
+                include_citations=request.options.include_citations,
+            )
+            result_type = "scalar_answer"
+            visualization = None
+            answer = answer_artifacts.answer
+            citations = answer_artifacts.citations
+            used_nct_ids = answer_artifacts.used_nct_ids
+            analysis_excluded = answer_artifacts.excluded_count
         retrieved_count = sum(len(retrieval.studies) for retrieval in retrievals)
-        excluded_count = normalization_excluded + artifacts.excluded_count
+        excluded_count = normalization_excluded + analysis_excluded
         warnings = self._bounded_warnings(
             [*planning.warnings, *limit_warnings, *normalization_warnings]
         )
@@ -100,13 +124,15 @@ class QueryService:
 
         return SuccessResponse(
             request_id=request_id,
+            result_type=result_type,
             query=QuerySummary(
                 original=request.query,
                 interpretation=planning.plan.interpretation,
                 warnings=list(planning.warnings),
             ),
             plan=planning.plan,
-            visualization=artifacts.visualization,
+            visualization=visualization,
+            answer=answer,
             provenance=Provenance(
                 source=SourceMetadata(
                     api_version=version.api_version,
@@ -114,7 +140,7 @@ class QueryService:
                     retrieved_at=retrieved_at,
                     endpoint=f"{self._source_endpoint}/studies",
                 ),
-                citations=artifacts.citations,
+                citations=citations,
             ),
             meta=ResponseMetadata(
                 planner=PlannerMetadata(
@@ -125,7 +151,7 @@ class QueryService:
                 record_counts=RecordCounts(
                     matched=sum(retrieval.matched_count for retrieval in retrievals),
                     retrieved=retrieved_count,
-                    used=len(artifacts.used_nct_ids),
+                    used=len(used_nct_ids),
                     excluded=excluded_count,
                 ),
                 completeness=Completeness(

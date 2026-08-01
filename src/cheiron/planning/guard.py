@@ -3,6 +3,7 @@
 from collections.abc import Iterable, Sequence
 from typing import NoReturn
 
+from cheiron.domain.answer import SemanticPlan
 from cheiron.domain.enums import (
     AnalysisIntent,
     FilterField,
@@ -33,9 +34,11 @@ _TEXT_OPERATORS = {
 class ModelPlanGuard:
     """Reject schema-valid plans that violate authoritative request fields."""
 
-    def validate(self, request: QueryRequest, plan: AnalysisPlan) -> None:
+    def validate(self, request: QueryRequest, plan: SemanticPlan) -> None:
         preferred = request.options.preferred_visualization
-        if preferred is not None and plan.visualization is not preferred:
+        if preferred is not None and (
+            not isinstance(plan, AnalysisPlan) or plan.visualization is not preferred
+        ):
             self._reject("model plan ignored the preferred visualization")
 
         for attribute, field in _LIST_FILTERS:
@@ -48,7 +51,7 @@ class ModelPlanGuard:
 
     def _validate_list_filter(
         self,
-        plan: AnalysisPlan,
+        plan: SemanticPlan,
         field: FilterField,
         expected_values: Sequence[str],
     ) -> None:
@@ -65,14 +68,18 @@ class ModelPlanGuard:
 
         if all(values == expected for values in values_by_cohort):
             return
-        if plan.intent is AnalysisIntent.COMPARISON and field is FilterField.INTERVENTION:
+        if (
+            isinstance(plan, AnalysisPlan)
+            and plan.intent is AnalysisIntent.COMPARISON
+            and field is FilterField.INTERVENTION
+        ):
             combined = frozenset().union(*values_by_cohort)
             total_values = sum(len(values) for values in values_by_cohort)
             if combined == expected and total_values == len(combined):
                 return
         self._reject(f"model plan did not apply all structured {field.value} values")
 
-    def _validate_year_filters(self, request: QueryRequest, plan: AnalysisPlan) -> None:
+    def _validate_year_filters(self, request: QueryRequest, plan: SemanticPlan) -> None:
         lower = request.filters.start_year_from
         upper = request.filters.start_year_to
         if lower is None and upper is None:

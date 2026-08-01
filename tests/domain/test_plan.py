@@ -3,6 +3,7 @@
 import pytest
 from pydantic import ValidationError
 
+from cheiron.domain.answer import ScalarAnswerPlan
 from cheiron.domain.enums import (
     Aggregation,
     AnalysisIntent,
@@ -142,4 +143,17 @@ def test_measure_rejects_incompatible_aggregation() -> None:
             field=MeasureField.NCT_ID,
             aggregation=Aggregation.SUM,
             label="Invalid total",
+        )
+
+
+def test_scalar_answer_rejects_unaggregated_enrollment() -> None:
+    with pytest.raises(ValidationError, match="scalar answers require"):
+        ScalarAnswerPlan(
+            interpretation="Return one enrollment value.",
+            cohorts=[CohortSpec(id="all", label="All trials")],
+            measure=MeasureSpec(
+                field=MeasureField.ENROLLMENT,
+                aggregation=Aggregation.NONE,
+                label="Enrollment",
+            ),
         )

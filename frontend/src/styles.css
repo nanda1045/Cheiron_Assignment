@@ -745,6 +745,53 @@ main {
   text-transform: uppercase;
 }
 
+.answer-card {
+  margin-bottom: 18px;
+  padding: clamp(24px, 5vw, 48px);
+  display: grid;
+  gap: 12px;
+  border: 1px solid rgba(231, 255, 132, 0.23);
+  border-radius: 12px;
+  background:
+    radial-gradient(circle at 76% 18%, rgba(231, 255, 132, 0.1), transparent 34%),
+    rgba(3, 27, 24, 0.62);
+}
+
+.answer-card > span {
+  color: var(--acid);
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.answer-card > strong {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  color: #f4f8f1;
+  font-family: 'DM Mono', monospace;
+  font-size: clamp(42px, 7vw, 76px);
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: -0.06em;
+}
+
+.answer-card > strong small {
+  color: #91aaa2;
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.answer-card p {
+  max-width: 620px;
+  margin: 4px 0 0;
+  color: #afc2bb;
+  font-size: 12px;
+  line-height: 1.65;
+}
+
 .chart-shell {
   margin: 0 0 18px;
   overflow-x: auto;
@@ -1296,6 +1343,12 @@ main {
   border-color: rgba(231, 255, 132, 0.38);
   color: var(--acid);
   background: rgba(231, 255, 132, 0.06);
+}
+
+.unsupported-state .message-symbol {
+  border-color: rgba(150, 178, 169, 0.36);
+  color: #a9beb7;
+  background: rgba(150, 178, 169, 0.06);
 }
 
 .message-state small {

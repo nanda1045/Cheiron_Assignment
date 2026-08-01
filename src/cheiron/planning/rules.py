@@ -4,6 +4,7 @@ import re
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, replace
 
+from cheiron.domain.answer import ScalarAnswerPlan
 from cheiron.domain.enums import (
     Aggregation,
     AnalysisIntent,
@@ -26,7 +27,7 @@ from cheiron.domain.plan import (
     SortSpec,
 )
 from cheiron.domain.request import QueryFilters, QueryRequest
-from cheiron.planning.errors import ClarificationNeeded
+from cheiron.planning.errors import ClarificationNeeded, UnsupportedQuestion
 from cheiron.planning.models import PlanningResult
 
 TRIAL_COUNT_MEASURE = MeasureSpec(
@@ -39,6 +40,18 @@ ENROLLMENT_POINT_MEASURE = MeasureSpec(
     field=MeasureField.ENROLLMENT,
     aggregation=Aggregation.NONE,
     label="Enrollment",
+    unit="participants",
+)
+TOTAL_ENROLLMENT_MEASURE = MeasureSpec(
+    field=MeasureField.ENROLLMENT,
+    aggregation=Aggregation.SUM,
+    label="Total planned enrollment",
+    unit="participants",
+)
+AVERAGE_ENROLLMENT_MEASURE = MeasureSpec(
+    field=MeasureField.ENROLLMENT,
+    aggregation=Aggregation.AVERAGE,
+    label="Average planned enrollment",
     unit="participants",
 )
 
@@ -103,6 +116,20 @@ class RuleBasedPlanner:
 
     async def plan(self, request: QueryRequest) -> PlanningResult:
         query = self._normalize(request.query)
+        unsupported_reason = self._unsupported_reason(query)
+        if unsupported_reason is not None:
+            raise UnsupportedQuestion(
+                reason=unsupported_reason,
+                suggestions=(
+                    "Count recruiting trials for a condition.",
+                    "Show trials grouped by phase.",
+                ),
+            )
+
+        scalar_measure = self._scalar_measure(query)
+        if scalar_measure is not None:
+            return self._scalar_answer(request, query, scalar_measure)
+
         intent = self._detect_intent(query)
         shape = self._shape(intent, query)
         shape = self._apply_visualization_preference(shape, request)
@@ -169,6 +196,43 @@ class RuleBasedPlanner:
             ),
         )
 
+    def _scalar_answer(
+        self,
+        request: QueryRequest,
+        query: str,
+        measure: MeasureSpec,
+    ) -> PlanningResult:
+        if request.options.preferred_visualization is not None:
+            raise ClarificationNeeded(
+                question=(
+                    "This question asks for one number, but a preferred chart was also selected. "
+                    "Should I return the number or should the question include a grouping?"
+                ),
+                missing_fields=("dimension",),
+                suggestions=("Return one number", "Group the result by phase"),
+            )
+        global_filters = self._global_filters(request.filters, query)
+        cohorts = self._cohorts(
+            AnalysisIntent.DISTRIBUTION,
+            query,
+            request.filters,
+            global_filters,
+        )
+        plan = ScalarAnswerPlan(
+            interpretation=self._scalar_interpretation(measure),
+            cohorts=cohorts,
+            measure=measure,
+        )
+        return PlanningResult(
+            plan=plan,
+            mode=PlannerMode.RULES,
+            capability_limited=True,
+            warnings=(
+                "The deterministic fallback planner supports explicit scalar counts, totals, "
+                "and averages over ClinicalTrials.gov metadata.",
+            ),
+        )
+
     @staticmethod
     def _normalize(value: str) -> str:
         return " ".join(value.casefold().replace("\N{EN DASH}", "-").split())
@@ -194,6 +258,71 @@ class RuleBasedPlanner:
         if any(term in query for term in ("geographic", "geography", "by country", "countries")):
             return AnalysisIntent.GEOGRAPHIC
         return AnalysisIntent.DISTRIBUTION
+
+    @staticmethod
+    def _scalar_measure(query: str) -> MeasureSpec | None:
+        visualization_terms = (
+            "compare",
+            "comparison",
+            " vs ",
+            " versus ",
+            "trend",
+            "over time",
+            "each year",
+            "yearly",
+            "distribution",
+            "histogram",
+            "scatter",
+            "relationship",
+            "network",
+            "plot",
+            "chart",
+            "graph",
+            "top ",
+        )
+        grouped = re.search(
+            r"\bby\s+(?:trial\s+)?(?:phase|year|country|sponsor|intervention|treatment|status)\b",
+            query,
+        )
+        if grouped is not None or any(term in query for term in visualization_terms):
+            return None
+        if re.search(r"\b(?:average|mean)\s+(?:planned\s+)?enrollment\b", query):
+            return AVERAGE_ENROLLMENT_MEASURE
+        if re.search(r"\b(?:total|sum(?:med)?)\s+(?:planned\s+)?enrollment\b", query):
+            return TOTAL_ENROLLMENT_MEASURE
+        if re.search(r"\bhow many\b|\bnumber of\b|\bcount(?: of)?\b", query):
+            return TRIAL_COUNT_MEASURE
+        return None
+
+    @staticmethod
+    def _unsupported_reason(query: str) -> str | None:
+        unsupported_terms = (
+            "best treatment",
+            "most effective",
+            "least effective",
+            "recommend a treatment",
+            "treatment recommendation",
+            "should i take",
+            "should i use",
+            "diagnose",
+            "prognosis",
+            "prove that",
+            "causes ",
+        )
+        if any(term in query for term in unsupported_terms):
+            return (
+                "Cheiron can analyze registered trial metadata, but it cannot provide medical "
+                "advice or infer treatment efficacy, safety, causality, or prognosis."
+            )
+        return None
+
+    @staticmethod
+    def _scalar_interpretation(measure: MeasureSpec) -> str:
+        if measure.field is MeasureField.NCT_ID:
+            return "Count distinct clinical trials matching all requested filters."
+        if measure.aggregation is Aggregation.AVERAGE:
+            return "Calculate average planned enrollment for matching trials that report it."
+        return "Sum planned enrollment for matching trials that report it."
 
     def _shape(self, intent: AnalysisIntent, query: str) -> _PlanShape:
         if intent is AnalysisIntent.RELATIONSHIP:
@@ -456,6 +585,8 @@ class RuleBasedPlanner:
             r"\bof\s+(.+?)\s+(?:clinical\s+)?(?:trials?|studies?)\b",
             r"\b(?:show|display|plot|chart|count|summarize|list)\s+"
             r"(?:me\s+)?(?:the\s+)?(.+?)\s+(?:clinical\s+)?(?:trials?|studies?)\b",
+            r"\b(?:how many|number of|count of)\s+(.+?)\s+"
+            r"(?:clinical\s+)?(?:trials?|studies?)\b",
         )
         for pattern in patterns:
             match = re.search(pattern, query)

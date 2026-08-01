@@ -16,6 +16,17 @@ class ModelPlanRejectedError(ModelPlanningError):
 
 
 @dataclass(frozen=True, slots=True)
+class UnsupportedQuestion(PlanningError):
+    """The question asks for a conclusion outside supported source-data analysis."""
+
+    reason: str
+    suggestions: tuple[str, ...] = ()
+
+    def __str__(self) -> str:
+        return self.reason
+
+
+@dataclass(frozen=True, slots=True)
 class ClarificationNeeded(PlanningError):
     """The request is safe to retry after the user supplies missing intent."""
 

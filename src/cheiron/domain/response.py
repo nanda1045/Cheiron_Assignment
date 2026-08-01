@@ -6,9 +6,9 @@ from uuid import UUID
 
 from pydantic import Field, HttpUrl, model_validator
 
+from cheiron.domain.answer import ScalarAnswer, SemanticPlan
 from cheiron.domain.base import DomainModel
 from cheiron.domain.enums import CompletenessStatus, PlannerMode
-from cheiron.domain.plan import AnalysisPlan
 from cheiron.domain.visualization import ScalarValue, VisualizationSpec
 
 type EvidenceValue = ScalarValue | list[ScalarValue]
@@ -97,11 +97,24 @@ class SuccessResponse(DomainModel):
     schema_version: Literal["1.0"] = "1.0"
     request_id: UUID
     status: Literal["ok"] = "ok"
+    result_type: Literal["visualization", "scalar_answer"]
     query: QuerySummary
-    plan: AnalysisPlan
-    visualization: VisualizationSpec
+    plan: SemanticPlan
+    visualization: VisualizationSpec | None = None
+    answer: ScalarAnswer | None = None
     provenance: Provenance
     meta: ResponseMetadata
+
+    @model_validator(mode="after")
+    def validate_result_payload(self) -> "SuccessResponse":
+        if self.result_type == "visualization":
+            if self.visualization is None or self.answer is not None:
+                raise ValueError("visualization results require only a visualization payload")
+        elif self.answer is None or self.visualization is not None:
+            raise ValueError("scalar answer results require only an answer payload")
+        if self.result_type != self.plan.output_type:
+            raise ValueError("result type must agree with semantic plan output type")
+        return self
 
 
 class Clarification(DomainModel):
@@ -115,6 +128,14 @@ class ClarificationResponse(DomainModel):
     request_id: UUID
     status: Literal["clarification_required"] = "clarification_required"
     clarification: Clarification
+
+
+class UnsupportedResponse(DomainModel):
+    schema_version: Literal["1.0"] = "1.0"
+    request_id: UUID
+    status: Literal["unsupported"] = "unsupported"
+    reason: str = Field(min_length=3, max_length=500)
+    suggestions: list[str] = Field(default_factory=list, max_length=5)
 
 
 class ErrorDetail(DomainModel):
@@ -132,6 +153,6 @@ class ErrorResponse(DomainModel):
 
 
 QueryResponse = Annotated[
-    SuccessResponse | ClarificationResponse | ErrorResponse,
+    SuccessResponse | ClarificationResponse | UnsupportedResponse | ErrorResponse,
     Field(discriminator="status"),
 ]

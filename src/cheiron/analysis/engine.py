@@ -7,6 +7,7 @@ from itertools import product
 from math import ceil, sqrt
 
 from cheiron.analysis.errors import MissingCohortError, UnsupportedAnalysisError
+from cheiron.analysis.evidence import cohort_filter_evidence_paths
 from cheiron.analysis.filtering import RecordFilter
 from cheiron.analysis.models import (
     AnalysisDatum,
@@ -408,31 +409,12 @@ class AnalysisEngine:
 
     @staticmethod
     def _evidence_paths(plan: AnalysisPlan, dimensions: list[DimensionSpec]) -> tuple[str, ...]:
-        paths: list[str] = []
-        for cohort in plan.cohorts:
-            for filter_clause in cohort.filters:
-                paths.extend(AnalysisEngine._filter_evidence_paths(filter_clause.field.value))
+        paths = list(cohort_filter_evidence_paths(plan.cohorts))
         for dimension in dimensions:
             paths.extend(DIMENSION_EVIDENCE_PATHS.get(dimension.field, ()))
         if plan.measure.field.value == "enrollment":
             paths.append(ENROLLMENT_COUNT_PATH)
         return tuple(dict.fromkeys(paths))
-
-    @staticmethod
-    def _filter_evidence_paths(field: str) -> tuple[str, ...]:
-        paths = {
-            "condition": (CONDITIONS_PATH,),
-            "intervention": (f"{INTERVENTIONS_PATH}.name",),
-            "phase": (PHASES_PATH,),
-            "sponsor": (SPONSOR_NAME_PATH,),
-            "sponsor_class": (SPONSOR_CLASS_PATH,),
-            "country": (f"{LOCATIONS_PATH}.country",),
-            "status": ("protocolSection.statusModule.overallStatus",),
-            "study_type": ("protocolSection.designModule.studyType",),
-            "start_year": (START_DATE_PATH,),
-            "enrollment": (ENROLLMENT_COUNT_PATH,),
-        }
-        return paths.get(field, ())
 
     @staticmethod
     def _sort_data(

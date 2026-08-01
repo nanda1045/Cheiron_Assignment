@@ -6,7 +6,7 @@ import type {
   TabularDatum,
 } from '../../api/types.ts'
 
-export type EvidenceTargetKind = 'datum' | 'node' | 'edge'
+export type EvidenceTargetKind = 'answer' | 'datum' | 'node' | 'edge'
 
 export interface EvidenceAttribute {
   label: string

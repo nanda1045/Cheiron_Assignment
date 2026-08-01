@@ -136,6 +136,7 @@ class AnalysisPlan(DomainModel):
     """Planner output contract; no API parameter or arbitrary field can pass through it."""
 
     schema_version: Literal["1.0"] = "1.0"
+    output_type: Literal["visualization"] = "visualization"
     intent: AnalysisIntent
     interpretation: str = Field(min_length=3, max_length=500)
     cohorts: list[CohortSpec] = Field(min_length=1, max_length=5)

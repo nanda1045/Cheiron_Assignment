@@ -90,7 +90,7 @@ export interface Citation {
   }>
 }
 
-export interface SuccessResponse {
+interface SuccessResponseBase {
   schema_version: '1.0'
   request_id: string
   status: 'ok'
@@ -101,7 +101,6 @@ export interface SuccessResponse {
     warnings: string[]
   }
   plan: Record<string, unknown>
-  visualization: Visualization
   provenance: {
     source: {
       name: 'ClinicalTrials.gov'
@@ -135,6 +134,27 @@ export interface SuccessResponse {
   }
 }
 
+export interface VisualizationSuccessResponse extends SuccessResponseBase {
+  result_type: 'visualization'
+  visualization: Visualization
+  answer: null
+}
+
+export interface ScalarAnswerSuccessResponse extends SuccessResponseBase {
+  result_type: 'scalar_answer'
+  visualization: null
+  answer: {
+    kind: 'scalar'
+    title: string
+    text: string
+    value: number | null
+    unit: string | null
+    citation_ids: string[]
+  }
+}
+
+export type SuccessResponse = VisualizationSuccessResponse | ScalarAnswerSuccessResponse
+
 export interface ClarificationResponse {
   schema_version: '1.0'
   request_id: string
@@ -158,4 +178,16 @@ export interface ErrorResponse {
   }
 }
 
-export type QueryResponse = SuccessResponse | ClarificationResponse | ErrorResponse
+export interface UnsupportedResponse {
+  schema_version: '1.0'
+  request_id: string
+  status: 'unsupported'
+  reason: string
+  suggestions: string[]
+}
+
+export type QueryResponse =
+  | SuccessResponse
+  | ClarificationResponse
+  | UnsupportedResponse
+  | ErrorResponse

@@ -74,6 +74,7 @@ function isQueryResponse(payload: unknown): payload is QueryResponse {
     typeof envelope.request_id === 'string' &&
     (envelope.status === 'ok' ||
       envelope.status === 'clarification_required' ||
+      envelope.status === 'unsupported' ||
       envelope.status === 'error')
   )
 }

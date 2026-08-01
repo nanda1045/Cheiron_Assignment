@@ -5,7 +5,10 @@ import type {
   ErrorResponse,
   QueryResponse,
   ScalarValue,
+  ScalarAnswerSuccessResponse,
   SuccessResponse,
+  UnsupportedResponse,
+  VisualizationSuccessResponse,
 } from '../api/types.ts'
 import { EvidenceInspector } from './provenance/EvidenceInspector.tsx'
 import {
@@ -49,6 +52,8 @@ export function ResultStage({
         <SuccessResult key={response.request_id} response={response} />
       ) : response?.status === 'clarification_required' ? (
         <ClarificationResult response={response} onSuggestion={onSuggestion} />
+      ) : response?.status === 'unsupported' ? (
+        <UnsupportedResult response={response} onSuggestion={onSuggestion} />
       ) : response?.status === 'error' ? (
         <ErrorResult response={response} />
       ) : (
@@ -122,6 +127,13 @@ function LoadingState() {
 }
 
 function SuccessResult({ response }: { response: SuccessResponse }) {
+  if (response.result_type === 'scalar_answer') {
+    return <ScalarAnswerResult response={response} />
+  }
+  return <VisualizationResult response={response} />
+}
+
+function VisualizationResult({ response }: { response: VisualizationSuccessResponse }) {
   const visualization = response.visualization
   const citationCount = Object.keys(response.provenance.citations).length
   const [selectedTarget, setSelectedTarget] = useState<EvidenceTarget | null>(null)
@@ -168,21 +180,86 @@ function SuccessResult({ response }: { response: SuccessResponse }) {
         onSelectTarget={setSelectedTarget}
       />
 
-      <footer className="result-footer">
-        <div>
-          <span>Source snapshot</span>
-          <strong>{formatDate(response.provenance.source.data_timestamp)}</strong>
-        </div>
-        <div>
-          <span>Planner</span>
-          <strong>{formatToken(response.meta.planner.mode)}</strong>
-        </div>
-        <div>
-          <span>Request</span>
-          <strong>{response.request_id.slice(0, 8)}</strong>
-        </div>
-      </footer>
+      <ResultFooter response={response} />
     </div>
+  )
+}
+
+function ScalarAnswerResult({ response }: { response: ScalarAnswerSuccessResponse }) {
+  const answer = response.answer
+  const citationCount = Object.keys(response.provenance.citations).length
+  const target: EvidenceTarget = {
+    key: 'answer:scalar',
+    kind: 'answer',
+    title: answer.title,
+    attributes: [
+      {
+        label: answer.unit ? `Value (${answer.unit})` : 'Value',
+        value: answer.value,
+      },
+    ],
+    citationIds: answer.citation_ids,
+  }
+
+  return (
+    <div className="success-result">
+      <div className="result-title-row">
+        <div>
+          <p className="eyebrow">Sourced answer</p>
+          <h3>{answer.title}</h3>
+          <p>One deterministic aggregate from the matching source records.</p>
+        </div>
+        <span className="complete-badge">
+          <CheckIcon />
+          Complete
+        </span>
+      </div>
+
+      <blockquote>{response.query.interpretation}</blockquote>
+
+      <div className="metric-strip" aria-label="Result metadata">
+        <Metric value={response.meta.record_counts.used} label="Studies used" />
+        <Metric value={citationCount} label="Citations" />
+        <Metric value={response.meta.completeness.pages_retrieved} label="Pages read" />
+        <Metric value={`${response.meta.duration_ms}ms`} label="Duration" />
+      </div>
+
+      <section className="answer-card" aria-label={answer.title}>
+        <span>Computed result</span>
+        <strong>
+          {formatValue(answer.value)}
+          {answer.unit ? <small>{answer.unit}</small> : null}
+        </strong>
+        <p>{answer.text}</p>
+      </section>
+
+      <EvidenceInspector
+        target={target}
+        citations={response.provenance.citations}
+        source={response.provenance.source}
+      />
+
+      <ResultFooter response={response} />
+    </div>
+  )
+}
+
+function ResultFooter({ response }: { response: SuccessResponse }) {
+  return (
+    <footer className="result-footer">
+      <div>
+        <span>Source snapshot</span>
+        <strong>{formatDate(response.provenance.source.data_timestamp)}</strong>
+      </div>
+      <div>
+        <span>Planner</span>
+        <strong>{formatToken(response.meta.planner.mode)}</strong>
+      </div>
+      <div>
+        <span>Request</span>
+        <strong>{response.request_id.slice(0, 8)}</strong>
+      </div>
+    </footer>
   )
 }
 
@@ -200,7 +277,7 @@ function DataPreview({
   selectedTargetKey,
   onSelectTarget,
 }: {
-  response: SuccessResponse
+  response: VisualizationSuccessResponse
   selectedTargetKey?: string
   onSelectTarget: (target: EvidenceTarget) => void
 }) {
@@ -371,6 +448,33 @@ function ErrorResult({ response }: { response: ErrorResponse }) {
         Request {response.request_id.slice(0, 8)}
         {response.error.retryable ? ' · This request can be retried.' : ''}
       </small>
+    </div>
+  )
+}
+
+function UnsupportedResult({
+  response,
+  onSuggestion,
+}: {
+  response: UnsupportedResponse
+  onSuggestion: (suggestion: string) => void
+}) {
+  return (
+    <div className="message-state unsupported-state">
+      <span className="message-symbol" aria-hidden="true">×</span>
+      <p className="eyebrow">Outside supported analysis</p>
+      <h3>This question needs a different kind of evidence.</h3>
+      <p>{response.reason}</p>
+      {response.suggestions.length > 0 && (
+        <div className="suggestion-list" aria-label="Supported question examples">
+          {response.suggestions.map((suggestion) => (
+            <button key={suggestion} type="button" onClick={() => onSuggestion(suggestion)}>
+              {suggestion}
+              <span aria-hidden="true">→</span>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

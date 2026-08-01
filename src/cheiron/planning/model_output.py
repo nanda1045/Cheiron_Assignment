@@ -4,15 +4,15 @@ from typing import Literal
 
 from pydantic import Field
 
+from cheiron.domain.answer import SemanticPlan
 from cheiron.domain.base import DomainModel
-from cheiron.domain.plan import AnalysisPlan
 
 
 class ModelPlanDecision(DomainModel):
     """A complete semantic plan ready for application-side validation."""
 
     status: Literal["planned"] = "planned"
-    plan: AnalysisPlan
+    plan: SemanticPlan
     warnings: list[str] = Field(default_factory=list, max_length=5)
 
 
@@ -25,7 +25,15 @@ class ModelClarificationDecision(DomainModel):
     suggestions: list[str] = Field(default_factory=list, max_length=5)
 
 
-ModelPlannerDecision = ModelPlanDecision | ModelClarificationDecision
+class ModelUnsupportedDecision(DomainModel):
+    """A request outside safe ClinicalTrials.gov metadata analysis."""
+
+    status: Literal["unsupported"] = "unsupported"
+    reason: str = Field(min_length=3, max_length=500)
+    suggestions: list[str] = Field(default_factory=list, max_length=5)
+
+
+ModelPlannerDecision = ModelPlanDecision | ModelClarificationDecision | ModelUnsupportedDecision
 
 
 class ModelPlannerEnvelope(DomainModel):

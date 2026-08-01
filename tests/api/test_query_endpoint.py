@@ -137,6 +137,25 @@ async def test_query_endpoint_returns_clarification_without_calling_source() -> 
 
 
 @pytest.mark.asyncio
+async def test_query_endpoint_returns_typed_unsupported_response_without_source_call() -> None:
+    gateway = EndpointGateway([])
+    app = query_app(gateway)
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+    ) as client:
+        response = await client.post(
+            "/v1/query",
+            json={"query": "Which is the best treatment for melanoma?"},
+        )
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "unsupported"
+    assert "medical advice" in response.json()["reason"]
+    assert gateway.fetch_calls == 0
+
+
+@pytest.mark.asyncio
 async def test_query_endpoint_maps_study_cap_to_typed_422(
     first_page: dict[str, Any],
     second_page: dict[str, Any],

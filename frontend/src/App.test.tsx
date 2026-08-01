@@ -6,7 +6,9 @@ import App from './App.tsx'
 import {
   clarificationResponse,
   errorResponse,
+  scalarAnswerResponse,
   successResponse,
+  unsupportedResponse,
 } from './test/fixtures.ts'
 
 describe('App', () => {
@@ -74,6 +76,44 @@ describe('App', () => {
       clarificationResponse.clarification.suggestions[0],
     )
     expect(screen.getByText('Evidence will take shape here.')).toBeVisible()
+  })
+
+  it('renders a deterministic scalar answer with its evidence', async () => {
+    const user = userEvent.setup()
+    vi.stubGlobal(
+      'fetch',
+      vi.fn<typeof fetch>().mockResolvedValue(jsonResponse(scalarAnswerResponse)),
+    )
+    render(<App />)
+
+    await user.type(
+      screen.getByLabelText('Clinical-trial question'),
+      scalarAnswerResponse.query.original,
+    )
+    await user.click(screen.getByRole('button', { name: 'Generate evidence view' }))
+
+    expect(await screen.findByRole('region', { name: 'Matching trial count' })).toHaveTextContent(
+      '18 matching clinical trials',
+    )
+    expect(screen.getByText('Scalar answer')).toBeVisible()
+    expect(screen.getByRole('link', { name: /NCT00000001/ })).toBeVisible()
+  })
+
+  it('renders unsupported questions with a supported alternative', async () => {
+    const user = userEvent.setup()
+    vi.stubGlobal(
+      'fetch',
+      vi.fn<typeof fetch>().mockResolvedValue(jsonResponse(unsupportedResponse)),
+    )
+    render(<App />)
+
+    await user.type(screen.getByLabelText('Clinical-trial question'), 'What is the best treatment?')
+    await user.click(screen.getByRole('button', { name: 'Generate evidence view' }))
+
+    expect(await screen.findByText(unsupportedResponse.reason)).toBeVisible()
+    expect(
+      screen.getByRole('button', { name: unsupportedResponse.suggestions[0] }),
+    ).toBeVisible()
   })
 
   it('shows typed service errors without discarding the request reference', async () => {

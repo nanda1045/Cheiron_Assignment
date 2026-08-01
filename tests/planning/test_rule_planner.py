@@ -2,11 +2,14 @@
 
 import pytest
 
+from cheiron.domain.answer import ScalarAnswerPlan
 from cheiron.domain.enums import (
+    Aggregation,
     AnalysisIntent,
     DimensionField,
     FilterField,
     FilterOperator,
+    MeasureField,
     PlannerMode,
     RelationshipEntity,
     SortDirection,
@@ -14,7 +17,7 @@ from cheiron.domain.enums import (
 )
 from cheiron.domain.plan import FilterClause
 from cheiron.domain.request import QueryFilters, QueryOptions, QueryRequest
-from cheiron.planning.errors import ClarificationNeeded
+from cheiron.planning.errors import ClarificationNeeded, UnsupportedQuestion
 from cheiron.planning.rules import RuleBasedPlanner
 
 
@@ -259,4 +262,47 @@ async def test_incompatible_visualization_preference_requires_confirmation() -> 
                 query="Show trial trends over time",
                 options=QueryOptions(preferred_visualization=VisualizationType.NETWORK_GRAPH),
             )
+        )
+
+
+@pytest.mark.asyncio
+async def test_single_count_question_routes_to_scalar_answer() -> None:
+    result = await RuleBasedPlanner().plan(
+        QueryRequest(query="How many recruiting Phase 3 breast cancer trials are there?")
+    )
+
+    assert isinstance(result.plan, ScalarAnswerPlan)
+    assert result.plan.measure.field is MeasureField.NCT_ID
+    clauses = filters_by_field(result.plan.cohorts[0].filters)
+    assert clauses[FilterField.CONDITION].values == ["breast cancer"]
+    assert clauses[FilterField.STATUS].values == ["RECRUITING"]
+    assert clauses[FilterField.PHASE].values == ["PHASE3"]
+
+
+@pytest.mark.asyncio
+async def test_average_enrollment_question_routes_to_scalar_answer() -> None:
+    result = await RuleBasedPlanner().plan(
+        QueryRequest(query="What is the average enrollment for melanoma trials?")
+    )
+
+    assert isinstance(result.plan, ScalarAnswerPlan)
+    assert result.plan.measure.field is MeasureField.ENROLLMENT
+    assert result.plan.measure.aggregation is Aggregation.AVERAGE
+
+
+@pytest.mark.asyncio
+async def test_grouped_count_still_routes_to_visualization() -> None:
+    result = await RuleBasedPlanner().plan(
+        QueryRequest(query="How many melanoma trials are there by phase?")
+    )
+
+    assert not isinstance(result.plan, ScalarAnswerPlan)
+    assert result.plan.visualization is VisualizationType.BAR_CHART
+
+
+@pytest.mark.asyncio
+async def test_medical_conclusion_is_explicitly_unsupported() -> None:
+    with pytest.raises(UnsupportedQuestion, match="medical advice"):
+        await RuleBasedPlanner().plan(
+            QueryRequest(query="What is the best treatment for melanoma?")
         )

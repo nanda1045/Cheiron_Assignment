@@ -1,13 +1,16 @@
 import type {
   ClarificationResponse,
   ErrorResponse,
-  SuccessResponse,
+  ScalarAnswerSuccessResponse,
+  UnsupportedResponse,
+  VisualizationSuccessResponse,
 } from '../api/types.ts'
 
-export const successResponse: SuccessResponse = {
+export const successResponse: VisualizationSuccessResponse = {
   schema_version: '1.0',
   request_id: '81cbeb65-b8cc-437f-a245-73cb734d10b9',
   status: 'ok',
+  result_type: 'visualization',
   query: {
     original: 'How many breast cancer trials exist by phase?',
     interpretation: 'Count interventional breast cancer studies and group them by phase.',
@@ -15,6 +18,7 @@ export const successResponse: SuccessResponse = {
     warnings: [],
   },
   plan: {},
+  answer: null,
   visualization: {
     type: 'bar_chart',
     title: 'Breast cancer trials by phase',
@@ -79,6 +83,31 @@ export const successResponse: SuccessResponse = {
   },
 }
 
+export const scalarAnswerResponse: ScalarAnswerSuccessResponse = {
+  ...successResponse,
+  request_id: 'c141f21b-d7bb-4b52-9bf5-cf18e9268472',
+  result_type: 'scalar_answer',
+  query: {
+    ...successResponse.query,
+    original: 'How many recruiting breast cancer trials are there?',
+    interpretation: 'Count distinct trials matching all requested filters.',
+  },
+  plan: { output_type: 'scalar_answer' },
+  visualization: null,
+  answer: {
+    kind: 'scalar',
+    title: 'Matching trial count',
+    text: '18 matching clinical trials were found in the source snapshot.',
+    value: 18,
+    unit: 'trials',
+    citation_ids: ['cit-nct00000001'],
+  },
+  meta: {
+    ...successResponse.meta,
+    record_counts: { matched: 18, retrieved: 18, used: 18, excluded: 0 },
+  },
+}
+
 export const clarificationResponse: ClarificationResponse = {
   schema_version: '1.0',
   request_id: '7e6a8f7e-909d-4932-92fa-fc50b5a68ca3',
@@ -100,4 +129,12 @@ export const errorResponse: ErrorResponse = {
     retryable: true,
     context: {},
   },
+}
+
+export const unsupportedResponse: UnsupportedResponse = {
+  schema_version: '1.0',
+  request_id: 'd50875f6-f2f8-4df3-b260-f4e0c74ff85f',
+  status: 'unsupported',
+  reason: 'Cheiron cannot infer treatment efficacy from registered trial metadata.',
+  suggestions: ['Count recruiting melanoma trials.'],
 }

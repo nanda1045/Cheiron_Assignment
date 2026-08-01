@@ -131,3 +131,30 @@ async def test_server_cap_is_disclosed_in_response_warnings(
 
     assert gateway.limits == [10]
     assert any("server cap" in warning for warning in response.meta.warnings)
+
+
+@pytest.mark.asyncio
+async def test_query_service_builds_deterministic_scalar_answer(
+    first_page: dict[str, Any],
+    second_page: dict[str, Any],
+) -> None:
+    gateway = RecordedGateway([*first_page["studies"], *second_page["studies"]])
+    service = QueryService(
+        planner=RuleBasedPlanner(),
+        clinical_trials=gateway,
+        source_endpoint="https://clinicaltrials.gov/api/v2",
+        max_studies=20_000,
+    )
+
+    response = await service.execute(
+        QueryRequest(query="How many recruiting melanoma trials are there?"),
+        request_id=uuid4(),
+    )
+
+    assert response.result_type == "scalar_answer"
+    assert response.visualization is None
+    assert response.answer is not None
+    assert response.answer.value == 1
+    assert len(response.answer.citation_ids) == 1
+    assert response.meta.record_counts.used == 1
+    assert response.meta.record_counts.excluded == 1

@@ -167,7 +167,12 @@ function formatScalar(value: ScalarValue): string {
 }
 
 function formatKind(kind: EvidenceTarget['kind']): string {
-  const labels = { datum: 'Chart datum', node: 'Network node', edge: 'Network edge' } as const
+  const labels = {
+    answer: 'Scalar answer',
+    datum: 'Chart datum',
+    node: 'Network node',
+    edge: 'Network edge',
+  } as const
   return labels[kind]
 }
 

@@ -11,6 +11,7 @@ import respx
 from anthropic import APIConnectionError, AsyncAnthropic
 from pydantic import ValidationError
 
+from cheiron.domain.answer import ScalarAnswerPlan
 from cheiron.domain.enums import (
     Aggregation,
     AnalysisIntent,
@@ -37,12 +38,14 @@ from cheiron.planning.claude_planner import (
 from cheiron.planning.errors import (
     ClarificationNeeded,
     ModelPlanningError,
+    UnsupportedQuestion,
 )
 from cheiron.planning.guarded import GuardedPlanner
 from cheiron.planning.model_output import (
     ModelClarificationDecision,
     ModelPlanDecision,
     ModelPlannerEnvelope,
+    ModelUnsupportedDecision,
 )
 from cheiron.planning.rules import RuleBasedPlanner
 
@@ -76,6 +79,14 @@ def distribution_plan(*, condition: str = "Melanoma") -> AnalysisPlan:
         dimensions=[DimensionSpec(field=DimensionField.PHASE)],
         measure=trial_count_measure(),
         visualization=VisualizationType.BAR_CHART,
+    )
+
+
+def scalar_count_plan() -> ScalarAnswerPlan:
+    return ScalarAnswerPlan(
+        interpretation="Count distinct matching clinical trials.",
+        cohorts=[CohortSpec(id="matching", label="Matching trials")],
+        measure=trial_count_measure(),
     )
 
 
@@ -294,6 +305,32 @@ async def test_model_clarification_is_preserved() -> None:
 
     assert captured.value.missing_fields == ("filters.interventions",)
     assert captured.value.suggestions == ("Pembrolizumab versus nivolumab",)
+
+
+@pytest.mark.asyncio
+async def test_model_can_choose_typed_scalar_answer() -> None:
+    plan = scalar_count_plan()
+    client, _ = mock_client(ModelPlannerEnvelope(decision=ModelPlanDecision(plan=plan)))
+
+    result = await ClaudePlanner(client).plan(
+        QueryRequest(query="How many recruiting melanoma trials are there?")
+    )
+
+    assert result.plan == plan
+
+
+@pytest.mark.asyncio
+async def test_model_unsupported_decision_is_preserved() -> None:
+    decision = ModelUnsupportedDecision(
+        reason="Treatment recommendations are not supported by trial metadata.",
+        suggestions=["Count recruiting melanoma trials."],
+    )
+    client, _ = mock_client(ModelPlannerEnvelope(decision=decision))
+
+    with pytest.raises(UnsupportedQuestion) as captured:
+        await ClaudePlanner(client).plan(QueryRequest(query="What treatment should I take?"))
+
+    assert captured.value.suggestions == ("Count recruiting melanoma trials.",)
 
 
 @pytest.mark.asyncio

@@ -23,8 +23,13 @@ from cheiron.domain.response import (
     ClarificationResponse,
     ErrorResponse,
     QueryResponse,
+    UnsupportedResponse,
 )
-from cheiron.planning.errors import ClarificationNeeded, ModelPlanningError
+from cheiron.planning.errors import (
+    ClarificationNeeded,
+    ModelPlanningError,
+    UnsupportedQuestion,
+)
 
 router = APIRouter(tags=["queries"])
 QueryServiceDependency = Annotated[QueryService, Depends(get_query_service)]
@@ -57,6 +62,12 @@ async def query_trials(
                 missing_fields=list(error.missing_fields),
                 suggestions=list(error.suggestions),
             ),
+        )
+    except UnsupportedQuestion as error:
+        return UnsupportedResponse(
+            request_id=request_id,
+            reason=error.reason,
+            suggestions=list(error.suggestions),
         )
     except QueryTooBroadError as error:
         return error_response(
