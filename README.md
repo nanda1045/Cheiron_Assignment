@@ -614,3 +614,57 @@ citations removes only citation references and the catalog; deterministic
 analytical values remain identical, which is tested explicitly by the evidence
 evaluation suite. See the [example capture notes](docs/examples/README.md) for
 source-version and reproducibility details.
+
+### Frontend demo gallery
+
+The screenshots below are citation-enabled frontend runs of the same queries.
+Expand an example to inspect the rendered result and its execution metadata.
+
+<details>
+<summary>Bar chart — recruiting melanoma trials by phase</summary>
+
+![Bar chart of recruiting melanoma trials by phase](docs/images/bar-chart.png)
+
+</details>
+
+<details>
+<summary>Grouped bar chart — pembrolizumab versus nivolumab by phase</summary>
+
+![Grouped bar chart comparing pembrolizumab and nivolumab trials](docs/images/grouped-bar-chart.png)
+
+</details>
+
+<details>
+<summary>Time series — recruiting Phase 3 breast cancer trials by start year</summary>
+
+![Time series of recruiting Phase 3 breast cancer trials](docs/images/time-series.png)
+
+</details>
+
+<details>
+<summary>Histogram — Phase 2 glioblastoma trial enrollment</summary>
+
+![Histogram of Phase 2 glioblastoma trial enrollment](docs/images/histogram.png)
+
+</details>
+
+<details>
+<summary>Scatter plot — Phase 3 Alzheimer's trials by start year and enrollment</summary>
+
+![Scatter plot of Phase 3 Alzheimer's trials by start year and enrollment](docs/images/scatter-plot.png)
+
+</details>
+
+<details>
+<summary>Network graph — melanoma trial sponsors and interventions</summary>
+
+![Network graph connecting melanoma trial sponsors and interventions](docs/images/network-graph.png)
+
+</details>
+
+<details>
+<summary>Scalar answer — recruiting melanoma trial count</summary>
+
+![Scalar answer showing the recruiting melanoma trial count](docs/images/scalar-answer.png)
+
+</details>
