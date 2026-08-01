@@ -302,7 +302,41 @@ async def test_grouped_count_still_routes_to_visualization() -> None:
 
 @pytest.mark.asyncio
 async def test_medical_conclusion_is_explicitly_unsupported() -> None:
-    with pytest.raises(UnsupportedQuestion, match="medical advice"):
+    with pytest.raises(UnsupportedQuestion, match="medical advice") as captured:
         await RuleBasedPlanner().plan(
             QueryRequest(query="What is the best treatment for melanoma?")
         )
+
+    assert captured.value.suggestions == (
+        "Show recruiting melanoma trials by phase.",
+        "Show melanoma trials by intervention type.",
+        "Which sponsors lead melanoma trials?",
+    )
+
+
+@pytest.mark.asyncio
+async def test_unsupported_pivot_respects_authoritative_condition_filter() -> None:
+    with pytest.raises(UnsupportedQuestion) as captured:
+        await RuleBasedPlanner().plan(
+            QueryRequest(
+                query="What is the most effective treatment?",
+                filters=QueryFilters(conditions=["Glioblastoma"]),
+            )
+        )
+
+    assert captured.value.suggestions[0] == (
+        "Show recruiting Glioblastoma trials by phase."
+    )
+
+
+@pytest.mark.asyncio
+async def test_unsupported_pivot_uses_generic_suggestions_without_a_condition() -> None:
+    with pytest.raises(UnsupportedQuestion) as captured:
+        await RuleBasedPlanner().plan(
+            QueryRequest(query="Which treatment is most effective?")
+        )
+
+    assert captured.value.suggestions == (
+        "Count recruiting trials for a condition.",
+        "Show trials grouped by phase.",
+    )

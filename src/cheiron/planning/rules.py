@@ -194,16 +194,34 @@ class RuleBasedPlanner:
         if unsupported_reason is not None:
             raise UnsupportedQuestion(
                 reason=unsupported_reason,
-                suggestions=(
-                    "Count recruiting trials for a condition.",
-                    "Show trials grouped by phase.",
-                ),
+                suggestions=self._unsupported_suggestions(request, query),
             )
 
         scalar_measure = self._scalar_measure(query)
         if scalar_measure is not None:
             return self._scalar_answer(request, query, scalar_measure)
         return None
+
+    def _unsupported_suggestions(
+        self,
+        request: QueryRequest,
+        query: str,
+    ) -> tuple[str, ...]:
+        conditions = self._unique(request.filters.conditions) or tuple(
+            self._extract_conditions(query)
+        )
+        if len(conditions) == 1:
+            condition = self._clean_condition_term(conditions[0])[:80]
+            if condition.casefold() not in {"", "me", "myself", "someone", "a patient"}:
+                return (
+                    f"Show recruiting {condition} trials by phase.",
+                    f"Show {condition} trials by intervention type.",
+                    f"Which sponsors lead {condition} trials?",
+                )
+        return (
+            "Count recruiting trials for a condition.",
+            "Show trials grouped by phase.",
+        )
 
     def _scalar_answer(
         self,

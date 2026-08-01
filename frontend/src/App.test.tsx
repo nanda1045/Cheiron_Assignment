@@ -135,6 +135,13 @@ describe('App', () => {
     expect(
       screen.getByRole('button', { name: unsupportedResponse.suggestions[0] }),
     ).toBeVisible()
+    await user.click(
+      screen.getByRole('button', { name: unsupportedResponse.suggestions[0] }),
+    )
+    expect(screen.getByLabelText('Clinical-trial question')).toHaveValue(
+      unsupportedResponse.suggestions[0],
+    )
+    expect(screen.getByText('Evidence will take shape here.')).toBeVisible()
   })
 
   it('shows typed service errors without discarding the request reference', async () => {

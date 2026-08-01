@@ -23,6 +23,7 @@ advice, efficacy judgments, causality, or prognosis are rejected as unsupported.
 - Optional structured filters that take precedence over natural-language values
 - Datum-level ClinicalTrials.gov citations with exact field/value evidence
 - Typed clarification, unsupported-question and provider/source failure responses
+- Condition-aware safe pivots from medical-advice requests to supported trial analyses
 - Pagination, study limits, normalization warnings and completeness metadata
 - A frontend that renders every supported chart and exposes citation evidence
 
@@ -359,8 +360,12 @@ responses:
   "schema_version": "1.0",
   "request_id": "00000000-0000-0000-0000-000000000000",
   "status": "unsupported",
-  "reason": "Cheiron can analyze registered trial metadata but cannot infer efficacy.",
-  "suggestions": ["Count recruiting melanoma trials."]
+  "reason": "Cheiron can analyze registered trial metadata, but it cannot provide medical advice or infer treatment efficacy, safety, causality, or prognosis.",
+  "suggestions": [
+    "Show recruiting melanoma trials by phase.",
+    "Show melanoma trials by intervention type.",
+    "Which sponsors lead melanoma trials?"
+  ]
 }
 ```
 
@@ -477,6 +482,12 @@ and ClinicalTrials.gov failures have distinct typed responses. `auto` planner
 mode can fall back to the deliberately smaller rule grammar for model/API
 failures, but clarifications and unsupported questions are never hidden.
 
+Medical-advice, efficacy, safety, causality and prognosis questions return a
+typed `unsupported` response rather than a hard error. When the condition is
+available from authoritative filters or can be parsed safely, the response
+offers clickable, condition-specific pivots such as “Show recruiting melanoma
+trials by phase.” The alternative is never executed without the user's choice.
+
 ## Validation and evaluation
 
 Correctness is checked at separate boundaries rather than through screenshots
@@ -497,7 +508,7 @@ npm run build
 
 Current reviewed state:
 
-- 120 backend tests
+- 122 backend tests
 - 23 frontend tests
 - Ruff linting passes
 - Strict mypy checking passes

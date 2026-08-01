@@ -166,5 +166,9 @@ export const unsupportedResponse: UnsupportedResponse = {
   request_id: 'd50875f6-f2f8-4df3-b260-f4e0c74ff85f',
   status: 'unsupported',
   reason: 'Cheiron cannot infer treatment efficacy from registered trial metadata.',
-  suggestions: ['Count recruiting melanoma trials.'],
+  suggestions: [
+    'Show recruiting melanoma trials by phase.',
+    'Show melanoma trials by intervention type.',
+    'Which sponsors lead melanoma trials?',
+  ],
 }

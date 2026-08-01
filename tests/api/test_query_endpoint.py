@@ -173,6 +173,11 @@ async def test_query_endpoint_returns_typed_unsupported_response_without_source_
     assert response.status_code == 200
     assert response.json()["status"] == "unsupported"
     assert "medical advice" in response.json()["reason"]
+    assert response.json()["suggestions"] == [
+        "Show recruiting melanoma trials by phase.",
+        "Show melanoma trials by intervention type.",
+        "Which sponsors lead melanoma trials?",
+    ]
     assert gateway.fetch_calls == 0
 
 
