@@ -65,6 +65,12 @@ dimensions, measures, cohorts, relationships, and required or forbidden filters.
 The reviewed `gpt-5.4-mini` baseline passed 16/16 cases and 130/130 semantic
 assertions; see [`evals/README.md`](evals/README.md) for scope and limitations.
 
+Run exact-value and datum-level provenance checks over frozen source fixtures:
+
+```bash
+uv run python scripts/run_evidence_evals.py
+```
+
 Run the frontend quality gates with:
 
 ```bash

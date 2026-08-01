@@ -1,0 +1,188 @@
+[
+  {
+    "id": "phase-counts-with-provenance",
+    "category": "aggregation",
+    "plan": {
+      "intent": "distribution",
+      "interpretation": "Count distinct melanoma trials by phase.",
+      "cohorts": [
+        {
+          "id": "all",
+          "label": "Melanoma trials",
+          "filters": [{"field": "condition", "operator": "contains", "values": ["Melanoma"]}]
+        }
+      ],
+      "dimensions": [{"field": "phase"}],
+      "measure": {"field": "nct_id", "aggregation": "count_distinct", "label": "Trial count", "unit": "trials"},
+      "visualization": "bar_chart"
+    },
+    "expected": {
+      "output_type": "visualization",
+      "tabular_values": [
+        {"phase": "Phase 2", "trial_count": 1},
+        {"phase": "Phase 3", "trial_count": 1}
+      ],
+      "used_nct_ids": ["NCT00000001", "NCT00000002"],
+      "excluded_count": 0
+    }
+  },
+  {
+    "id": "country-distinct-trial-counts",
+    "category": "deduplication",
+    "plan": {
+      "intent": "geographic",
+      "interpretation": "Count distinct trials by country.",
+      "cohorts": [{"id": "all", "label": "All trials", "filters": []}],
+      "dimensions": [{"field": "country"}],
+      "measure": {"field": "nct_id", "aggregation": "count_distinct", "label": "Trial count", "unit": "trials"},
+      "visualization": "bar_chart"
+    },
+    "expected": {
+      "output_type": "visualization",
+      "tabular_values": [
+        {"country": "United States", "trial_count": 2},
+        {"country": "Canada", "trial_count": 1}
+      ],
+      "used_nct_ids": ["NCT00000001", "NCT00000002"],
+      "excluded_count": 0
+    }
+  },
+  {
+    "id": "annual-trial-counts",
+    "category": "trend",
+    "plan": {
+      "intent": "trend",
+      "interpretation": "Count distinct trial starts by year.",
+      "cohorts": [{"id": "all", "label": "All trials", "filters": []}],
+      "dimensions": [{"field": "start_year", "granularity": "year"}],
+      "measure": {"field": "nct_id", "aggregation": "count_distinct", "label": "Trial count", "unit": "trials"},
+      "visualization": "time_series"
+    },
+    "expected": {
+      "output_type": "visualization",
+      "tabular_values": [
+        {"start_year": 2019, "trial_count": 1},
+        {"start_year": 2021, "trial_count": 1}
+      ],
+      "used_nct_ids": ["NCT00000001", "NCT00000002"],
+      "excluded_count": 0
+    }
+  },
+  {
+    "id": "deterministic-enrollment-bins",
+    "category": "histogram",
+    "plan": {
+      "intent": "histogram",
+      "interpretation": "Build deterministic planned-enrollment bins.",
+      "cohorts": [{"id": "all", "label": "All trials", "filters": []}],
+      "dimensions": [{"field": "enrollment"}],
+      "measure": {"field": "nct_id", "aggregation": "count_distinct", "label": "Trial count", "unit": "trials"},
+      "visualization": "histogram"
+    },
+    "expected": {
+      "output_type": "visualization",
+      "tabular_values": [
+        {"bin": "80-190", "bin_start": 80, "bin_end": 190, "trial_count": 1},
+        {"bin": "191-300", "bin_start": 191, "bin_end": 300, "trial_count": 1}
+      ],
+      "used_nct_ids": ["NCT00000001", "NCT00000002"],
+      "excluded_count": 0
+    }
+  },
+  {
+    "id": "traceable-enrollment-scatter",
+    "category": "scatter",
+    "plan": {
+      "intent": "scatter",
+      "interpretation": "Plot start year against planned enrollment.",
+      "cohorts": [{"id": "all", "label": "All trials", "filters": []}],
+      "dimensions": [{"field": "start_year"}],
+      "measure": {"field": "enrollment", "aggregation": "none", "label": "Enrollment", "unit": "participants"},
+      "visualization": "scatter_plot"
+    },
+    "expected": {
+      "output_type": "visualization",
+      "tabular_values": [
+        {"nct_id": "NCT00000002", "start_year": 2019, "enrollment": 80},
+        {"nct_id": "NCT00000001", "start_year": 2021, "enrollment": 300}
+      ],
+      "used_nct_ids": ["NCT00000001", "NCT00000002"],
+      "excluded_count": 0
+    }
+  },
+  {
+    "id": "traceable-sponsor-network",
+    "category": "relationship",
+    "plan": {
+      "intent": "relationship",
+      "interpretation": "Connect lead sponsors to interventions.",
+      "cohorts": [{"id": "all", "label": "All trials", "filters": []}],
+      "dimensions": [],
+      "measure": {"field": "nct_id", "aggregation": "count_distinct", "label": "Trial count", "unit": "trials"},
+      "visualization": "network_graph",
+      "relationship": {"source": "sponsor", "target": "intervention"}
+    },
+    "expected": {
+      "output_type": "visualization",
+      "network_nodes": [
+        {"label": "Nivolumab", "entity_type": "intervention", "value": 1},
+        {"label": "Pembrolizumab", "entity_type": "intervention", "value": 1},
+        {"label": "Example Pharma", "entity_type": "sponsor", "value": 1},
+        {"label": "Example University", "entity_type": "sponsor", "value": 1}
+      ],
+      "network_edges": [
+        {"source_label": "Example Pharma", "target_label": "Pembrolizumab", "weight": 1},
+        {"source_label": "Example University", "target_label": "Nivolumab", "weight": 1}
+      ],
+      "used_nct_ids": ["NCT00000001", "NCT00000002"],
+      "excluded_count": 0
+    }
+  },
+  {
+    "id": "sourced-recruiting-count",
+    "category": "scalar",
+    "plan": {
+      "output_type": "scalar_answer",
+      "interpretation": "Count recruiting melanoma trials.",
+      "cohorts": [
+        {
+          "id": "all",
+          "label": "Recruiting melanoma trials",
+          "filters": [
+            {"field": "condition", "operator": "contains", "values": ["Melanoma"]},
+            {"field": "status", "operator": "equals", "values": ["RECRUITING"]}
+          ]
+        }
+      ],
+      "measure": {"field": "nct_id", "aggregation": "count_distinct", "label": "Trial count", "unit": "trials"}
+    },
+    "expected": {
+      "output_type": "scalar_answer",
+      "scalar_value": 1,
+      "used_nct_ids": ["NCT00000001"],
+      "excluded_count": 1
+    }
+  },
+  {
+    "id": "citations-disabled-value-invariance",
+    "category": "citation-control",
+    "include_citations": false,
+    "plan": {
+      "intent": "distribution",
+      "interpretation": "Count distinct trials by phase without citations.",
+      "cohorts": [{"id": "all", "label": "All trials", "filters": []}],
+      "dimensions": [{"field": "phase"}],
+      "measure": {"field": "nct_id", "aggregation": "count_distinct", "label": "Trial count", "unit": "trials"},
+      "visualization": "bar_chart"
+    },
+    "expected": {
+      "output_type": "visualization",
+      "tabular_values": [
+        {"phase": "Phase 2", "trial_count": 1},
+        {"phase": "Phase 3", "trial_count": 1}
+      ],
+      "used_nct_ids": ["NCT00000001", "NCT00000002"],
+      "excluded_count": 0
+    }
+  }
+]

@@ -34,3 +34,24 @@ separate from the deterministic unit-test suite.
 `baselines/gpt-5.4-mini.json` records a reviewed full-suite run together with the
 dataset SHA-256 fingerprint. It is evidence from one live run, not a guarantee
 that a nondeterministic provider will reproduce the same result indefinitely.
+
+## Deterministic evidence evaluation
+
+`evidence_cases.json` executes validated plans against the frozen
+ClinicalTrials.gov fixtures used by the test suite. It asserts exact analytical
+values and then independently verifies that:
+
+- every datum reference resolves to a citation;
+- cited NCT IDs equal the records actually used by the analysis;
+- every citation evidence path and value matches its normalized source record;
+- count, node, edge, point, and scalar values agree with citation cardinality;
+- disabling citations changes no analytical values and leaves no references.
+
+Run it without network access or API credits:
+
+```bash
+uv run python scripts/run_evidence_evals.py
+```
+
+This evaluator requires a 100% pass rate. Its reviewed result is recorded in
+`baselines/evidence-pipeline.json` with fingerprints for the cases and fixtures.
