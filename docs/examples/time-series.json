@@ -1,0 +1,197 @@
+{
+  "schema_version": "1.0",
+  "request_id": "6f4683d1-cd3d-4848-b6b6-41ac0a34b970",
+  "status": "ok",
+  "result_type": "visualization",
+  "query": {
+    "original": "How have recruiting Phase 3 breast cancer trials changed each year since 2020?",
+    "interpretation": "Trend in recruiting Phase 3 breast cancer trials by start year since 2020.",
+    "structured_filters_authoritative": true,
+    "warnings": []
+  },
+  "plan": {
+    "schema_version": "1.0",
+    "output_type": "visualization",
+    "intent": "trend",
+    "interpretation": "Trend in recruiting Phase 3 breast cancer trials by start year since 2020.",
+    "cohorts": [
+      {
+        "id": "cohort1",
+        "label": "Recruiting Phase 3 breast cancer trials since 2020",
+        "filters": [
+          {
+            "field": "condition",
+            "operator": "contains",
+            "values": [
+              "breast cancer"
+            ]
+          },
+          {
+            "field": "phase",
+            "operator": "equals",
+            "values": [
+              "PHASE3"
+            ]
+          },
+          {
+            "field": "status",
+            "operator": "equals",
+            "values": [
+              "RECRUITING"
+            ]
+          },
+          {
+            "field": "start_year",
+            "operator": "gte",
+            "values": [
+              2020
+            ]
+          }
+        ]
+      }
+    ],
+    "dimensions": [
+      {
+        "field": "start_year",
+        "granularity": "year"
+      }
+    ],
+    "measure": {
+      "field": "nct_id",
+      "aggregation": "count_distinct",
+      "label": "Trial count",
+      "unit": "trials"
+    },
+    "visualization": "time_series",
+    "sort": {
+      "field": "start_year",
+      "direction": "ascending"
+    },
+    "limit": null,
+    "relationship": null
+  },
+  "visualization": {
+    "type": "time_series",
+    "title": "Unique trials by Start year",
+    "description": "Trend in recruiting Phase 3 breast cancer trials by start year since 2020.",
+    "encoding": {
+      "x": {
+        "field": "start_year",
+        "data_type": "temporal",
+        "title": "Start year",
+        "unit": null,
+        "sort": null
+      },
+      "y": {
+        "field": "trial_count",
+        "data_type": "quantitative",
+        "title": "Unique trials",
+        "unit": "trials",
+        "sort": null
+      },
+      "color": null,
+      "size": null
+    },
+    "data": {
+      "kind": "tabular",
+      "records": [
+        {
+          "id": "2020--trial-count--cea8a85fc8",
+          "values": {
+            "start_year": 2020,
+            "trial_count": 5
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "2021--trial-count--8e78c35976",
+          "values": {
+            "start_year": 2021,
+            "trial_count": 11
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "2022--trial-count--14f4f30373",
+          "values": {
+            "start_year": 2022,
+            "trial_count": 12
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "2023--trial-count--6f5ac7afd7",
+          "values": {
+            "start_year": 2023,
+            "trial_count": 40
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "2024--trial-count--8b1e0ff558",
+          "values": {
+            "start_year": 2024,
+            "trial_count": 31
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "2025--trial-count--62040574fc",
+          "values": {
+            "start_year": 2025,
+            "trial_count": 50
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "2026--trial-count--6798dee397",
+          "values": {
+            "start_year": 2026,
+            "trial_count": 21
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "2027--trial-count--f69b9bc266",
+          "values": {
+            "start_year": 2027,
+            "trial_count": 1
+          },
+          "citation_ids": []
+        }
+      ]
+    }
+  },
+  "answer": null,
+  "provenance": {
+    "source": {
+      "name": "ClinicalTrials.gov",
+      "api_version": "2.0.5",
+      "data_timestamp": "2026-07-31T09:00:04",
+      "retrieved_at": "2026-08-01T03:52:49.851821Z",
+      "endpoint": "https://clinicaltrials.gov/api/v2/studies"
+    },
+    "citations": {}
+  },
+  "meta": {
+    "planner": {
+      "mode": "openai",
+      "model": "gpt-5.4-mini",
+      "capability_limited": false
+    },
+    "record_counts": {
+      "matched": 191,
+      "retrieved": 191,
+      "used": 171,
+      "excluded": 20
+    },
+    "completeness": {
+      "status": "complete",
+      "is_complete": true,
+      "pages_retrieved": 1,
+      "reason": null
+    },
+    "duration_ms": 4703,
+    "warnings": []
+  }
+}

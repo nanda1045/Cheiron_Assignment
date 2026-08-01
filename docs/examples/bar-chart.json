@@ -1,0 +1,164 @@
+{
+  "schema_version": "1.0",
+  "request_id": "03621dd2-4933-4f32-bd69-7205cb3a1d3f",
+  "status": "ok",
+  "result_type": "visualization",
+  "query": {
+    "original": "Show recruiting melanoma trials by phase.",
+    "interpretation": "Show recruiting melanoma trials grouped by phase.",
+    "structured_filters_authoritative": true,
+    "warnings": []
+  },
+  "plan": {
+    "schema_version": "1.0",
+    "output_type": "visualization",
+    "intent": "distribution",
+    "interpretation": "Show recruiting melanoma trials grouped by phase.",
+    "cohorts": [
+      {
+        "id": "cohort1",
+        "label": "Recruiting melanoma trials",
+        "filters": [
+          {
+            "field": "condition",
+            "operator": "contains",
+            "values": [
+              "melanoma"
+            ]
+          },
+          {
+            "field": "status",
+            "operator": "equals",
+            "values": [
+              "RECRUITING"
+            ]
+          }
+        ]
+      }
+    ],
+    "dimensions": [
+      {
+        "field": "phase",
+        "granularity": null
+      }
+    ],
+    "measure": {
+      "field": "nct_id",
+      "aggregation": "count_distinct",
+      "label": "Trial count",
+      "unit": null
+    },
+    "visualization": "bar_chart",
+    "sort": null,
+    "limit": null,
+    "relationship": null
+  },
+  "visualization": {
+    "type": "bar_chart",
+    "title": "Unique trials by Phase",
+    "description": "Show recruiting melanoma trials grouped by phase.",
+    "encoding": {
+      "x": {
+        "field": "phase",
+        "data_type": "ordinal",
+        "title": "Phase",
+        "unit": null,
+        "sort": null
+      },
+      "y": {
+        "field": "trial_count",
+        "data_type": "quantitative",
+        "title": "Unique trials",
+        "unit": null,
+        "sort": null
+      },
+      "color": null,
+      "size": null
+    },
+    "data": {
+      "kind": "tabular",
+      "records": [
+        {
+          "id": "early-phase-1--trial-count--f232e902ff",
+          "values": {
+            "phase": "Early Phase 1",
+            "trial_count": 8
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "phase-1--trial-count--a8e3e6e269",
+          "values": {
+            "phase": "Phase 1",
+            "trial_count": 138
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "phase-2--trial-count--96706d452f",
+          "values": {
+            "phase": "Phase 2",
+            "trial_count": 164
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "phase-3--trial-count--897fe26964",
+          "values": {
+            "phase": "Phase 3",
+            "trial_count": 31
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "phase-4--trial-count--cbe519c442",
+          "values": {
+            "phase": "Phase 4",
+            "trial_count": 4
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "not-applicable--trial-count--6886f3f165",
+          "values": {
+            "phase": "Not Applicable",
+            "trial_count": 71
+          },
+          "citation_ids": []
+        }
+      ]
+    }
+  },
+  "answer": null,
+  "provenance": {
+    "source": {
+      "name": "ClinicalTrials.gov",
+      "api_version": "2.0.5",
+      "data_timestamp": "2026-07-31T09:00:04",
+      "retrieved_at": "2026-08-01T03:51:51.469640Z",
+      "endpoint": "https://clinicaltrials.gov/api/v2/studies"
+    },
+    "citations": {}
+  },
+  "meta": {
+    "planner": {
+      "mode": "openai",
+      "model": "gpt-5.4-mini",
+      "capability_limited": false
+    },
+    "record_counts": {
+      "matched": 476,
+      "retrieved": 476,
+      "used": 338,
+      "excluded": 138
+    },
+    "completeness": {
+      "status": "complete",
+      "is_complete": true,
+      "pages_retrieved": 1,
+      "reason": null
+    },
+    "duration_ms": 2616,
+    "warnings": []
+  }
+}

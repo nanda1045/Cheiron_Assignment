@@ -1,0 +1,760 @@
+{
+  "schema_version": "1.0",
+  "request_id": "3a9f3154-045f-4427-96ff-49586297a63a",
+  "status": "ok",
+  "result_type": "visualization",
+  "query": {
+    "original": "Show relationships between lead sponsors and interventions for recruiting Phase 3 melanoma trials started since 2022.",
+    "interpretation": "Relationship between lead sponsors and interventions for recruiting Phase 3 melanoma trials started since 2022.",
+    "structured_filters_authoritative": true,
+    "warnings": []
+  },
+  "plan": {
+    "schema_version": "1.0",
+    "output_type": "visualization",
+    "intent": "relationship",
+    "interpretation": "Relationship between lead sponsors and interventions for recruiting Phase 3 melanoma trials started since 2022.",
+    "cohorts": [
+      {
+        "id": "cohort1",
+        "label": "Recruiting Phase 3 melanoma trials started since 2022",
+        "filters": [
+          {
+            "field": "condition",
+            "operator": "contains",
+            "values": [
+              "melanoma"
+            ]
+          },
+          {
+            "field": "status",
+            "operator": "equals",
+            "values": [
+              "RECRUITING"
+            ]
+          },
+          {
+            "field": "phase",
+            "operator": "equals",
+            "values": [
+              "PHASE3"
+            ]
+          },
+          {
+            "field": "start_year",
+            "operator": "gte",
+            "values": [
+              2022
+            ]
+          }
+        ]
+      }
+    ],
+    "dimensions": [],
+    "measure": {
+      "field": "nct_id",
+      "aggregation": "count_distinct",
+      "label": "Trial count",
+      "unit": "trials"
+    },
+    "visualization": "network_graph",
+    "sort": null,
+    "limit": null,
+    "relationship": {
+      "source": "sponsor",
+      "target": "intervention",
+      "minimum_weight": 1,
+      "max_nodes": 50
+    }
+  },
+  "visualization": {
+    "type": "network_graph",
+    "title": "Sponsor ↔ Intervention trial relationships",
+    "description": "Relationship between lead sponsors and interventions for recruiting Phase 3 melanoma trials started since 2022.",
+    "encoding": {
+      "node_id": "id",
+      "node_label": "label",
+      "node_group": "entity_type",
+      "node_size": "value",
+      "edge_source": "source",
+      "edge_target": "target",
+      "edge_weight": "weight"
+    },
+    "data": {
+      "kind": "network",
+      "nodes": [
+        {
+          "id": "intervention:albumin-bound-paclitaxel--a7816b48e3",
+          "label": "Albumin-Bound Paclitaxel",
+          "entity_type": "intervention",
+          "value": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "intervention:atezolizumab--c446cdb443",
+          "label": "Atezolizumab",
+          "entity_type": "intervention",
+          "value": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "sponsor:binhui-biopharmaceutical-co-ltd--121d8d7846",
+          "label": "Binhui Biopharmaceutical Co., Ltd.",
+          "entity_type": "sponsor",
+          "value": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "intervention:brenetafusp--edaa9eed3d",
+          "label": "Brenetafusp",
+          "entity_type": "intervention",
+          "value": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "sponsor:cancer-research-uk--6dad7f0acd",
+          "label": "Cancer Research UK",
+          "entity_type": "sponsor",
+          "value": 3,
+          "citation_ids": []
+        },
+        {
+          "id": "intervention:chemotherapy-dacarbazine-or-temozolomide--fdc9990ba8",
+          "label": "Chemotherapy (dacarbazine or temozolomide)",
+          "entity_type": "intervention",
+          "value": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "intervention:cobimetinib--32c7a960ed",
+          "label": "Cobimetinib",
+          "entity_type": "intervention",
+          "value": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "intervention:dacarbazine--ccdc9d614a",
+          "label": "Dacarbazine",
+          "entity_type": "intervention",
+          "value": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "intervention:darovasertib--256e850804",
+          "label": "Darovasertib",
+          "entity_type": "intervention",
+          "value": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "intervention:eik1001--b3ba6b070a",
+          "label": "EIK1001",
+          "entity_type": "intervention",
+          "value": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "sponsor:eikon-therapeutics--c6f701bed4",
+          "label": "Eikon Therapeutics",
+          "entity_type": "sponsor",
+          "value": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "intervention:entrectinib--e3b90739bd",
+          "label": "Entrectinib",
+          "entity_type": "intervention",
+          "value": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "sponsor:etop-ibcsg-partners-foundation--cb862a8030",
+          "label": "ETOP IBCSG Partners Foundation",
+          "entity_type": "sponsor",
+          "value": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "sponsor:european-organisation-for-research-and-treatment-of-cancer-eortc--7d7260f03c",
+          "label": "European Organisation for Research and Treatment of Cancer - EORTC",
+          "entity_type": "sponsor",
+          "value": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "sponsor:gustav-stalhammar--719fa6f3a2",
+          "label": "Gustav Stalhammar",
+          "entity_type": "sponsor",
+          "value": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "sponsor:hildur-helgadottir--9047c2e3ab",
+          "label": "Hildur Helgadottir",
+          "entity_type": "sponsor",
+          "value": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "sponsor:ideaya-biosciences--1ac72a5cff",
+          "label": "IDEAYA Biosciences",
+          "entity_type": "sponsor",
+          "value": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "intervention:ima203--6d7ff250db",
+          "label": "IMA203",
+          "entity_type": "intervention",
+          "value": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "sponsor:immatics-us-inc--4b17615d44",
+          "label": "Immatics US, Inc.",
+          "entity_type": "sponsor",
+          "value": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "intervention:immune-checkpoint-inhibitor--df1cfc26fb",
+          "label": "Immune checkpoint inhibitor",
+          "entity_type": "intervention",
+          "value": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "sponsor:immunocore-ltd--024281f6d6",
+          "label": "Immunocore Ltd",
+          "entity_type": "sponsor",
+          "value": 2,
+          "citation_ids": []
+        },
+        {
+          "id": "intervention:immunotherapy-ipilimumab-and-nivolumab--dc184294eb",
+          "label": "Immunotherapy (ipilimumab and nivolumab)",
+          "entity_type": "intervention",
+          "value": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "intervention:immunotherapy-nivolumab-and-relatlimab--fb20d4bc0b",
+          "label": "Immunotherapy (nivolumab and relatlimab)",
+          "entity_type": "intervention",
+          "value": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "intervention:immunotherapy-pembrolizumab--cabafcf2af",
+          "label": "Immunotherapy (Pembrolizumab)",
+          "entity_type": "intervention",
+          "value": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "intervention:investigators-choice--fb05eb97d6",
+          "label": "Investigators Choice",
+          "entity_type": "intervention",
+          "value": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "sponsor:iovance-biotherapeutics-inc--6c394b6886",
+          "label": "Iovance Biotherapeutics, Inc.",
+          "entity_type": "sponsor",
+          "value": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "intervention:ipilimumab--71a4001853",
+          "label": "ipilimumab",
+          "entity_type": "intervention",
+          "value": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "intervention:lifileucel--55ffa990ec",
+          "label": "lifileucel",
+          "entity_type": "intervention",
+          "value": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "intervention:lifileucel-plus-pembrolizumab--6066a8edd3",
+          "label": "Lifileucel plus Pembrolizumab",
+          "entity_type": "intervention",
+          "value": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "sponsor:linnaeus-therapeutics-inc--47f4037055",
+          "label": "Linnaeus Therapeutics, Inc.",
+          "entity_type": "sponsor",
+          "value": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "intervention:melatonin--848500446d",
+          "label": "Melatonin",
+          "entity_type": "intervention",
+          "value": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "intervention:nivolumab--a550874b2c",
+          "label": "Nivolumab",
+          "entity_type": "intervention",
+          "value": 4,
+          "citation_ids": []
+        },
+        {
+          "id": "intervention:nivolumab--17dc11fad9",
+          "label": "nivolumab",
+          "entity_type": "intervention",
+          "value": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "intervention:nivolumab-ipilimumab--0a368e9436",
+          "label": "Nivolumab + Ipilimumab",
+          "entity_type": "intervention",
+          "value": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "intervention:nivolumab-relatlimab--3256a5cae8",
+          "label": "Nivolumab + Relatlimab",
+          "entity_type": "intervention",
+          "value": 2,
+          "citation_ids": []
+        },
+        {
+          "id": "intervention:nivolumab-plus-relatlimab--282f2d9b69",
+          "label": "nivolumab plus relatlimab",
+          "entity_type": "intervention",
+          "value": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "intervention:oh2--3d05e6db63",
+          "label": "OH2",
+          "entity_type": "intervention",
+          "value": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "intervention:paclitaxel--07323b0c5d",
+          "label": "paclitaxel",
+          "entity_type": "intervention",
+          "value": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "intervention:paclitaxel-plus-carboplatin--55596d0e7b",
+          "label": "paclitaxel plus carboplatin",
+          "entity_type": "intervention",
+          "value": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "intervention:pembrolizumab--df26226ac9",
+          "label": "pembrolizumab",
+          "entity_type": "intervention",
+          "value": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "intervention:pembrolizumab-keytruda--3f2208d4a8",
+          "label": "Pembrolizumab (KEYTRUDA® )",
+          "entity_type": "intervention",
+          "value": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "intervention:pembrolizumab-with-optional-crossover-period--f3b3abef8a",
+          "label": "Pembrolizumab with Optional Crossover Period",
+          "entity_type": "intervention",
+          "value": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "intervention:primary-local-therapy--631d5abbbe",
+          "label": "Primary Local Therapy",
+          "entity_type": "intervention",
+          "value": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "sponsor:replimune-inc--82e02c879e",
+          "label": "Replimune, Inc.",
+          "entity_type": "sponsor",
+          "value": 2,
+          "citation_ids": []
+        },
+        {
+          "id": "intervention:salvage-chemotherapy-or-best-supportive-care--d5a7d1ee8b",
+          "label": "Salvage chemotherapy or best supportive care",
+          "entity_type": "intervention",
+          "value": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "intervention:stereotactic-radiosurgery--d454ec288b",
+          "label": "Stereotactic radiosurgery",
+          "entity_type": "intervention",
+          "value": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "intervention:tebentafusp--556f554275",
+          "label": "Tebentafusp",
+          "entity_type": "intervention",
+          "value": 2,
+          "citation_ids": []
+        },
+        {
+          "id": "intervention:tebentafusp-with-pembrolizumab--7322ca3478",
+          "label": "Tebentafusp with Pembrolizumab",
+          "entity_type": "intervention",
+          "value": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "intervention:temozolomide--15499659cb",
+          "label": "temozolomide",
+          "entity_type": "intervention",
+          "value": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "intervention:vemurafenib--968ac79b07",
+          "label": "Vemurafenib",
+          "entity_type": "intervention",
+          "value": 1,
+          "citation_ids": []
+        }
+      ],
+      "edges": [
+        {
+          "id": "sponsor-replimune-inc-82e02c879e--intervention-nivolumab-a550874b2c--2db8ded1e2",
+          "source": "sponsor:replimune-inc--82e02c879e",
+          "target": "intervention:nivolumab--a550874b2c",
+          "weight": 2,
+          "citation_ids": []
+        },
+        {
+          "id": "sponsor-binhui-biopharmaceutical-co-ltd-121d8d7846--intervention-oh2-3d05e6db63--562947567b",
+          "source": "sponsor:binhui-biopharmaceutical-co-ltd--121d8d7846",
+          "target": "intervention:oh2--3d05e6db63",
+          "weight": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "sponsor-binhui-biopharmaceutical-co-ltd-121d8d7846--intervention-salvage-chemotherapy-or-best-supportive-care-d5a7d1ee8b--11af6e8c2c",
+          "source": "sponsor:binhui-biopharmaceutical-co-ltd--121d8d7846",
+          "target": "intervention:salvage-chemotherapy-or-best-supportive-care--d5a7d1ee8b",
+          "weight": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "sponsor-cancer-research-uk-6dad7f0acd--intervention-atezolizumab-c446cdb443--d7cd302896",
+          "source": "sponsor:cancer-research-uk--6dad7f0acd",
+          "target": "intervention:atezolizumab--c446cdb443",
+          "weight": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "sponsor-cancer-research-uk-6dad7f0acd--intervention-cobimetinib-32c7a960ed--a7bcfecd43",
+          "source": "sponsor:cancer-research-uk--6dad7f0acd",
+          "target": "intervention:cobimetinib--32c7a960ed",
+          "weight": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "sponsor-cancer-research-uk-6dad7f0acd--intervention-entrectinib-e3b90739bd--481376da9f",
+          "source": "sponsor:cancer-research-uk--6dad7f0acd",
+          "target": "intervention:entrectinib--e3b90739bd",
+          "weight": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "sponsor-cancer-research-uk-6dad7f0acd--intervention-vemurafenib-968ac79b07--861ba4a80c",
+          "source": "sponsor:cancer-research-uk--6dad7f0acd",
+          "target": "intervention:vemurafenib--968ac79b07",
+          "weight": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "sponsor-eikon-therapeutics-c6f701bed4--intervention-eik1001-b3ba6b070a--2534b27506",
+          "source": "sponsor:eikon-therapeutics--c6f701bed4",
+          "target": "intervention:eik1001--b3ba6b070a",
+          "weight": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "sponsor-eikon-therapeutics-c6f701bed4--intervention-pembrolizumab-keytruda-3f2208d4a8--c282506256",
+          "source": "sponsor:eikon-therapeutics--c6f701bed4",
+          "target": "intervention:pembrolizumab-keytruda--3f2208d4a8",
+          "weight": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "sponsor-etop-ibcsg-partners-foundation-cb862a8030--intervention-immune-checkpoint-inhibitor-df1cfc26fb--664f7d17f5",
+          "source": "sponsor:etop-ibcsg-partners-foundation--cb862a8030",
+          "target": "intervention:immune-checkpoint-inhibitor--df1cfc26fb",
+          "weight": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "sponsor-etop-ibcsg-partners-foundation-cb862a8030--intervention-stereotactic-radiosurgery-d454ec288b--8ce580fce2",
+          "source": "sponsor:etop-ibcsg-partners-foundation--cb862a8030",
+          "target": "intervention:stereotactic-radiosurgery--d454ec288b",
+          "weight": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "sponsor-european-organisation-for-research-and-treatment-of-cancer-eortc-7d7260f03c--intervention-tebentafusp-556f554275--54248ea2bb",
+          "source": "sponsor:european-organisation-for-research-and-treatment-of-cancer-eortc--7d7260f03c",
+          "target": "intervention:tebentafusp--556f554275",
+          "weight": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "sponsor-gustav-stalhammar-719fa6f3a2--intervention-melatonin-848500446d--52b110f958",
+          "source": "sponsor:gustav-stalhammar--719fa6f3a2",
+          "target": "intervention:melatonin--848500446d",
+          "weight": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "sponsor-hildur-helgadottir-9047c2e3ab--intervention-nivolumab-a550874b2c--91a94e75df",
+          "source": "sponsor:hildur-helgadottir--9047c2e3ab",
+          "target": "intervention:nivolumab--a550874b2c",
+          "weight": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "sponsor-hildur-helgadottir-9047c2e3ab--intervention-nivolumab-ipilimumab-0a368e9436--8bee732f13",
+          "source": "sponsor:hildur-helgadottir--9047c2e3ab",
+          "target": "intervention:nivolumab-ipilimumab--0a368e9436",
+          "weight": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "sponsor-ideaya-biosciences-1ac72a5cff--intervention-darovasertib-256e850804--955db8b3e7",
+          "source": "sponsor:ideaya-biosciences--1ac72a5cff",
+          "target": "intervention:darovasertib--256e850804",
+          "weight": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "sponsor-ideaya-biosciences-1ac72a5cff--intervention-primary-local-therapy-631d5abbbe--8c665faec8",
+          "source": "sponsor:ideaya-biosciences--1ac72a5cff",
+          "target": "intervention:primary-local-therapy--631d5abbbe",
+          "weight": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "sponsor-immatics-us-inc-4b17615d44--intervention-albumin-bound-paclitaxel-a7816b48e3--7cdc0bde85",
+          "source": "sponsor:immatics-us-inc--4b17615d44",
+          "target": "intervention:albumin-bound-paclitaxel--a7816b48e3",
+          "weight": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "sponsor-immatics-us-inc-4b17615d44--intervention-dacarbazine-ccdc9d614a--0f627c41f0",
+          "source": "sponsor:immatics-us-inc--4b17615d44",
+          "target": "intervention:dacarbazine--ccdc9d614a",
+          "weight": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "sponsor-immatics-us-inc-4b17615d44--intervention-ima203-6d7ff250db--ff7899d1dd",
+          "source": "sponsor:immatics-us-inc--4b17615d44",
+          "target": "intervention:ima203--6d7ff250db",
+          "weight": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "sponsor-immatics-us-inc-4b17615d44--intervention-ipilimumab-71a4001853--f4c8efd006",
+          "source": "sponsor:immatics-us-inc--4b17615d44",
+          "target": "intervention:ipilimumab--71a4001853",
+          "weight": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "sponsor-immatics-us-inc-4b17615d44--intervention-lifileucel-55ffa990ec--9bb765bdc1",
+          "source": "sponsor:immatics-us-inc--4b17615d44",
+          "target": "intervention:lifileucel--55ffa990ec",
+          "weight": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "sponsor-immatics-us-inc-4b17615d44--intervention-nivolumab-17dc11fad9--d5207765b6",
+          "source": "sponsor:immatics-us-inc--4b17615d44",
+          "target": "intervention:nivolumab--17dc11fad9",
+          "weight": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "sponsor-immatics-us-inc-4b17615d44--intervention-nivolumab-plus-relatlimab-282f2d9b69--c65805404b",
+          "source": "sponsor:immatics-us-inc--4b17615d44",
+          "target": "intervention:nivolumab-plus-relatlimab--282f2d9b69",
+          "weight": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "sponsor-immatics-us-inc-4b17615d44--intervention-paclitaxel-07323b0c5d--89c9184b18",
+          "source": "sponsor:immatics-us-inc--4b17615d44",
+          "target": "intervention:paclitaxel--07323b0c5d",
+          "weight": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "sponsor-immatics-us-inc-4b17615d44--intervention-paclitaxel-plus-carboplatin-55596d0e7b--896aebdfbf",
+          "source": "sponsor:immatics-us-inc--4b17615d44",
+          "target": "intervention:paclitaxel-plus-carboplatin--55596d0e7b",
+          "weight": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "sponsor-immatics-us-inc-4b17615d44--intervention-pembrolizumab-df26226ac9--52efc33fe3",
+          "source": "sponsor:immatics-us-inc--4b17615d44",
+          "target": "intervention:pembrolizumab--df26226ac9",
+          "weight": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "sponsor-immatics-us-inc-4b17615d44--intervention-temozolomide-15499659cb--fdb52dfa93",
+          "source": "sponsor:immatics-us-inc--4b17615d44",
+          "target": "intervention:temozolomide--15499659cb",
+          "weight": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "sponsor-immunocore-ltd-024281f6d6--intervention-brenetafusp-edaa9eed3d--5b441f9275",
+          "source": "sponsor:immunocore-ltd--024281f6d6",
+          "target": "intervention:brenetafusp--edaa9eed3d",
+          "weight": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "sponsor-immunocore-ltd-024281f6d6--intervention-investigators-choice-fb05eb97d6--d85f96a2be",
+          "source": "sponsor:immunocore-ltd--024281f6d6",
+          "target": "intervention:investigators-choice--fb05eb97d6",
+          "weight": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "sponsor-immunocore-ltd-024281f6d6--intervention-nivolumab-a550874b2c--50eec9bf87",
+          "source": "sponsor:immunocore-ltd--024281f6d6",
+          "target": "intervention:nivolumab--a550874b2c",
+          "weight": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "sponsor-immunocore-ltd-024281f6d6--intervention-nivolumab-relatlimab-3256a5cae8--19b1f8b325",
+          "source": "sponsor:immunocore-ltd--024281f6d6",
+          "target": "intervention:nivolumab-relatlimab--3256a5cae8",
+          "weight": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "sponsor-immunocore-ltd-024281f6d6--intervention-tebentafusp-556f554275--51a77112c3",
+          "source": "sponsor:immunocore-ltd--024281f6d6",
+          "target": "intervention:tebentafusp--556f554275",
+          "weight": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "sponsor-immunocore-ltd-024281f6d6--intervention-tebentafusp-with-pembrolizumab-7322ca3478--347ca7a517",
+          "source": "sponsor:immunocore-ltd--024281f6d6",
+          "target": "intervention:tebentafusp-with-pembrolizumab--7322ca3478",
+          "weight": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "sponsor-iovance-biotherapeutics-inc-6c394b6886--intervention-lifileucel-plus-pembrolizumab-6066a8edd3--86be1c251e",
+          "source": "sponsor:iovance-biotherapeutics-inc--6c394b6886",
+          "target": "intervention:lifileucel-plus-pembrolizumab--6066a8edd3",
+          "weight": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "sponsor-iovance-biotherapeutics-inc-6c394b6886--intervention-pembrolizumab-with-optional-crossover-period-f3b3abef8a--e583819415",
+          "source": "sponsor:iovance-biotherapeutics-inc--6c394b6886",
+          "target": "intervention:pembrolizumab-with-optional-crossover-period--f3b3abef8a",
+          "weight": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "sponsor-linnaeus-therapeutics-inc-47f4037055--intervention-chemotherapy-dacarbazine-or-temozolomide-fdc9990ba8--bae2073b3e",
+          "source": "sponsor:linnaeus-therapeutics-inc--47f4037055",
+          "target": "intervention:chemotherapy-dacarbazine-or-temozolomide--fdc9990ba8",
+          "weight": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "sponsor-linnaeus-therapeutics-inc-47f4037055--intervention-immunotherapy-ipilimumab-and-nivolumab-dc184294eb--5a88be93f9",
+          "source": "sponsor:linnaeus-therapeutics-inc--47f4037055",
+          "target": "intervention:immunotherapy-ipilimumab-and-nivolumab--dc184294eb",
+          "weight": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "sponsor-linnaeus-therapeutics-inc-47f4037055--intervention-immunotherapy-nivolumab-and-relatlimab-fb20d4bc0b--d3c621a1cf",
+          "source": "sponsor:linnaeus-therapeutics-inc--47f4037055",
+          "target": "intervention:immunotherapy-nivolumab-and-relatlimab--fb20d4bc0b",
+          "weight": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "sponsor-linnaeus-therapeutics-inc-47f4037055--intervention-immunotherapy-pembrolizumab-cabafcf2af--524f4365d0",
+          "source": "sponsor:linnaeus-therapeutics-inc--47f4037055",
+          "target": "intervention:immunotherapy-pembrolizumab--cabafcf2af",
+          "weight": 1,
+          "citation_ids": []
+        },
+        {
+          "id": "sponsor-replimune-inc-82e02c879e--intervention-nivolumab-relatlimab-3256a5cae8--8a3a683ba0",
+          "source": "sponsor:replimune-inc--82e02c879e",
+          "target": "intervention:nivolumab-relatlimab--3256a5cae8",
+          "weight": 1,
+          "citation_ids": []
+        }
+      ]
+    }
+  },
+  "answer": null,
+  "provenance": {
+    "source": {
+      "name": "ClinicalTrials.gov",
+      "api_version": "2.0.5",
+      "data_timestamp": "2026-07-31T09:00:04",
+      "retrieved_at": "2026-08-01T03:53:24.948838Z",
+      "endpoint": "https://clinicaltrials.gov/api/v2/studies"
+    },
+    "citations": {}
+  },
+  "meta": {
+    "planner": {
+      "mode": "openai",
+      "model": "gpt-5.4-mini",
+      "capability_limited": false
+    },
+    "record_counts": {
+      "matched": 30,
+      "retrieved": 30,
+      "used": 17,
+      "excluded": 13
+    },
+    "completeness": {
+      "status": "complete",
+      "is_complete": true,
+      "pages_retrieved": 1,
+      "reason": null
+    },
+    "duration_ms": 2410,
+    "warnings": []
+  }
+}

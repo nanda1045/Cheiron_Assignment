@@ -1,0 +1,216 @@
+{
+  "schema_version": "1.0",
+  "request_id": "9cd6cfaf-ec77-499c-9086-749b60df2c63",
+  "status": "ok",
+  "result_type": "visualization",
+  "query": {
+    "original": "Plot an enrollment histogram for Phase 2 glioblastoma trials.",
+    "interpretation": "Enrollment histogram for Phase 2 glioblastoma trials.",
+    "structured_filters_authoritative": true,
+    "warnings": []
+  },
+  "plan": {
+    "schema_version": "1.0",
+    "output_type": "visualization",
+    "intent": "histogram",
+    "interpretation": "Enrollment histogram for Phase 2 glioblastoma trials.",
+    "cohorts": [
+      {
+        "id": "cohort1",
+        "label": "Phase 2 glioblastoma trials",
+        "filters": [
+          {
+            "field": "phase",
+            "operator": "equals",
+            "values": [
+              "PHASE2"
+            ]
+          },
+          {
+            "field": "condition",
+            "operator": "contains",
+            "values": [
+              "glioblastoma"
+            ]
+          }
+        ]
+      }
+    ],
+    "dimensions": [
+      {
+        "field": "enrollment",
+        "granularity": null
+      }
+    ],
+    "measure": {
+      "field": "nct_id",
+      "aggregation": "count_distinct",
+      "label": "Trial count",
+      "unit": "trials"
+    },
+    "visualization": "histogram",
+    "sort": null,
+    "limit": null,
+    "relationship": null
+  },
+  "visualization": {
+    "type": "histogram",
+    "title": "Unique trials by Enrollment range",
+    "description": "Enrollment histogram for Phase 2 glioblastoma trials.",
+    "encoding": {
+      "x": {
+        "field": "bin",
+        "data_type": "ordinal",
+        "title": "Enrollment range",
+        "unit": null,
+        "sort": null
+      },
+      "y": {
+        "field": "trial_count",
+        "data_type": "quantitative",
+        "title": "Unique trials",
+        "unit": "trials",
+        "sort": null
+      },
+      "color": null,
+      "size": null
+    },
+    "data": {
+      "kind": "tabular",
+      "records": [
+        {
+          "id": "enrollment-0-225",
+          "values": {
+            "bin": "0-225",
+            "bin_start": 0,
+            "bin_end": 225,
+            "trial_count": 703
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "enrollment-226-451",
+          "values": {
+            "bin": "226-451",
+            "bin_start": 226,
+            "bin_end": 451,
+            "trial_count": 19
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "enrollment-452-677",
+          "values": {
+            "bin": "452-677",
+            "bin_start": 452,
+            "bin_end": 677,
+            "trial_count": 7
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "enrollment-678-903",
+          "values": {
+            "bin": "678-903",
+            "bin_start": 678,
+            "bin_end": 903,
+            "trial_count": 0
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "enrollment-904-1129",
+          "values": {
+            "bin": "904-1,129",
+            "bin_start": 904,
+            "bin_end": 1129,
+            "trial_count": 0
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "enrollment-1130-1355",
+          "values": {
+            "bin": "1,130-1,355",
+            "bin_start": 1130,
+            "bin_end": 1355,
+            "trial_count": 0
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "enrollment-1356-1581",
+          "values": {
+            "bin": "1,356-1,581",
+            "bin_start": 1356,
+            "bin_end": 1581,
+            "trial_count": 0
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "enrollment-1582-1807",
+          "values": {
+            "bin": "1,582-1,807",
+            "bin_start": 1582,
+            "bin_end": 1807,
+            "trial_count": 0
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "enrollment-1808-2033",
+          "values": {
+            "bin": "1,808-2,033",
+            "bin_start": 1808,
+            "bin_end": 2033,
+            "trial_count": 0
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "enrollment-2034-2250",
+          "values": {
+            "bin": "2,034-2,250",
+            "bin_start": 2034,
+            "bin_end": 2250,
+            "trial_count": 1
+          },
+          "citation_ids": []
+        }
+      ]
+    }
+  },
+  "answer": null,
+  "provenance": {
+    "source": {
+      "name": "ClinicalTrials.gov",
+      "api_version": "2.0.5",
+      "data_timestamp": "2026-07-31T09:00:04",
+      "retrieved_at": "2026-08-01T03:53:17.218409Z",
+      "endpoint": "https://clinicaltrials.gov/api/v2/studies"
+    },
+    "citations": {}
+  },
+  "meta": {
+    "planner": {
+      "mode": "openai",
+      "model": "gpt-5.4-mini",
+      "capability_limited": false
+    },
+    "record_counts": {
+      "matched": 958,
+      "retrieved": 958,
+      "used": 730,
+      "excluded": 228
+    },
+    "completeness": {
+      "status": "complete",
+      "is_complete": true,
+      "pages_retrieved": 1,
+      "reason": null
+    },
+    "duration_ms": 2662,
+    "warnings": []
+  }
+}

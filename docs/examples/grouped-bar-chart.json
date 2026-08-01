@@ -1,0 +1,250 @@
+{
+  "schema_version": "1.0",
+  "request_id": "992d606b-d551-4782-a499-aef93306697a",
+  "status": "ok",
+  "result_type": "visualization",
+  "query": {
+    "original": "Compare pembrolizumab and nivolumab trials in lung cancer by phase.",
+    "interpretation": "Compare pembrolizumab and nivolumab trials in lung cancer by phase.",
+    "structured_filters_authoritative": true,
+    "warnings": []
+  },
+  "plan": {
+    "schema_version": "1.0",
+    "output_type": "visualization",
+    "intent": "comparison",
+    "interpretation": "Compare pembrolizumab and nivolumab trials in lung cancer by phase.",
+    "cohorts": [
+      {
+        "id": "cohort1",
+        "label": "Pembrolizumab trials",
+        "filters": [
+          {
+            "field": "condition",
+            "operator": "contains",
+            "values": [
+              "lung cancer"
+            ]
+          },
+          {
+            "field": "intervention",
+            "operator": "contains",
+            "values": [
+              "pembrolizumab"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "cohort2",
+        "label": "Nivolumab trials",
+        "filters": [
+          {
+            "field": "condition",
+            "operator": "contains",
+            "values": [
+              "lung cancer"
+            ]
+          },
+          {
+            "field": "intervention",
+            "operator": "contains",
+            "values": [
+              "nivolumab"
+            ]
+          }
+        ]
+      }
+    ],
+    "dimensions": [
+      {
+        "field": "phase",
+        "granularity": null
+      }
+    ],
+    "measure": {
+      "field": "nct_id",
+      "aggregation": "count_distinct",
+      "label": "Trial count",
+      "unit": "trials"
+    },
+    "visualization": "grouped_bar_chart",
+    "sort": null,
+    "limit": null,
+    "relationship": null
+  },
+  "visualization": {
+    "type": "grouped_bar_chart",
+    "title": "Unique trials by Phase: Pembrolizumab trials vs Nivolumab trials",
+    "description": "Compare pembrolizumab and nivolumab trials in lung cancer by phase.",
+    "encoding": {
+      "x": {
+        "field": "phase",
+        "data_type": "ordinal",
+        "title": "Phase",
+        "unit": null,
+        "sort": null
+      },
+      "y": {
+        "field": "trial_count",
+        "data_type": "quantitative",
+        "title": "Unique trials",
+        "unit": "trials",
+        "sort": null
+      },
+      "color": {
+        "field": "cohort",
+        "data_type": "nominal",
+        "title": "Cohort",
+        "unit": null,
+        "sort": null
+      },
+      "size": null
+    },
+    "data": {
+      "kind": "tabular",
+      "records": [
+        {
+          "id": "early-phase-1--nivolumab-trials--trial-count--536107e842",
+          "values": {
+            "phase": "Early Phase 1",
+            "cohort": "Nivolumab trials",
+            "trial_count": 2
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "early-phase-1--pembrolizumab-trials--trial-count--5e8600ad0d",
+          "values": {
+            "phase": "Early Phase 1",
+            "cohort": "Pembrolizumab trials",
+            "trial_count": 3
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "phase-1--nivolumab-trials--trial-count--a236726b2d",
+          "values": {
+            "phase": "Phase 1",
+            "cohort": "Nivolumab trials",
+            "trial_count": 95
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "phase-1--pembrolizumab-trials--trial-count--a026151f76",
+          "values": {
+            "phase": "Phase 1",
+            "cohort": "Pembrolizumab trials",
+            "trial_count": 178
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "phase-2--nivolumab-trials--trial-count--923e9f449e",
+          "values": {
+            "phase": "Phase 2",
+            "cohort": "Nivolumab trials",
+            "trial_count": 154
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "phase-2--pembrolizumab-trials--trial-count--cfb1e0ac91",
+          "values": {
+            "phase": "Phase 2",
+            "cohort": "Pembrolizumab trials",
+            "trial_count": 242
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "phase-3--nivolumab-trials--trial-count--f74b7810a2",
+          "values": {
+            "phase": "Phase 3",
+            "cohort": "Nivolumab trials",
+            "trial_count": 33
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "phase-3--pembrolizumab-trials--trial-count--6771a1d535",
+          "values": {
+            "phase": "Phase 3",
+            "cohort": "Pembrolizumab trials",
+            "trial_count": 102
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "phase-4--nivolumab-trials--trial-count--58a9e1ef0c",
+          "values": {
+            "phase": "Phase 4",
+            "cohort": "Nivolumab trials",
+            "trial_count": 3
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "phase-4--pembrolizumab-trials--trial-count--7fcdf01608",
+          "values": {
+            "phase": "Phase 4",
+            "cohort": "Pembrolizumab trials",
+            "trial_count": 1
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "not-applicable--nivolumab-trials--trial-count--a34cbf1842",
+          "values": {
+            "phase": "Not Applicable",
+            "cohort": "Nivolumab trials",
+            "trial_count": 1
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "not-applicable--pembrolizumab-trials--trial-count--05c7a2cf73",
+          "values": {
+            "phase": "Not Applicable",
+            "cohort": "Pembrolizumab trials",
+            "trial_count": 5
+          },
+          "citation_ids": []
+        }
+      ]
+    }
+  },
+  "answer": null,
+  "provenance": {
+    "source": {
+      "name": "ClinicalTrials.gov",
+      "api_version": "2.0.5",
+      "data_timestamp": "2026-07-31T09:00:04",
+      "retrieved_at": "2026-08-01T03:52:10.827979Z",
+      "endpoint": "https://clinicaltrials.gov/api/v2/studies"
+    },
+    "citations": {}
+  },
+  "meta": {
+    "planner": {
+      "mode": "openai",
+      "model": "gpt-5.4-mini",
+      "capability_limited": false
+    },
+    "record_counts": {
+      "matched": 1193,
+      "retrieved": 1193,
+      "used": 630,
+      "excluded": 470
+    },
+    "completeness": {
+      "status": "complete",
+      "is_complete": true,
+      "pages_retrieved": 2,
+      "reason": null
+    },
+    "duration_ms": 3830,
+    "warnings": []
+  }
+}

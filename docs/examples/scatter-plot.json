@@ -1,0 +1,447 @@
+{
+  "schema_version": "1.0",
+  "request_id": "446f64bd-5f5e-438d-8633-5f36eca67d3d",
+  "status": "ok",
+  "result_type": "visualization",
+  "query": {
+    "original": "Plot start year against planned enrollment for Phase 3 Alzheimer's disease trials started since 2018.",
+    "interpretation": "Plot planned enrollment against start year for Phase 3 Alzheimer's disease trials started since 2018.",
+    "structured_filters_authoritative": true,
+    "warnings": []
+  },
+  "plan": {
+    "schema_version": "1.0",
+    "output_type": "visualization",
+    "intent": "scatter",
+    "interpretation": "Plot planned enrollment against start year for Phase 3 Alzheimer's disease trials started since 2018.",
+    "cohorts": [
+      {
+        "id": "cohort1",
+        "label": "Phase 3 Alzheimer's disease trials started since 2018",
+        "filters": [
+          {
+            "field": "condition",
+            "operator": "contains",
+            "values": [
+              "Alzheimer's disease"
+            ]
+          },
+          {
+            "field": "phase",
+            "operator": "equals",
+            "values": [
+              "PHASE3"
+            ]
+          },
+          {
+            "field": "start_year",
+            "operator": "gte",
+            "values": [
+              2018
+            ]
+          }
+        ]
+      }
+    ],
+    "dimensions": [
+      {
+        "field": "start_year",
+        "granularity": "year"
+      }
+    ],
+    "measure": {
+      "field": "enrollment",
+      "aggregation": "none",
+      "label": "Planned enrollment",
+      "unit": "participants"
+    },
+    "visualization": "scatter_plot",
+    "sort": null,
+    "limit": null,
+    "relationship": null
+  },
+  "visualization": {
+    "type": "scatter_plot",
+    "title": "Enrollment by Start year",
+    "description": "Plot planned enrollment against start year for Phase 3 Alzheimer's disease trials started since 2018.",
+    "encoding": {
+      "x": {
+        "field": "start_year",
+        "data_type": "temporal",
+        "title": "Start year",
+        "unit": null,
+        "sort": null
+      },
+      "y": {
+        "field": "enrollment",
+        "data_type": "quantitative",
+        "title": "Enrollment",
+        "unit": "participants",
+        "sort": null
+      },
+      "color": null,
+      "size": null
+    },
+    "data": {
+      "kind": "tabular",
+      "records": [
+        {
+          "id": "nct03486938",
+          "values": {
+            "nct_id": "NCT03486938",
+            "start_year": 2018,
+            "enrollment": 164
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "nct03491150",
+          "values": {
+            "nct_id": "NCT03491150",
+            "start_year": 2018,
+            "enrollment": 149
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "nct03594123",
+          "values": {
+            "nct_id": "NCT03594123",
+            "start_year": 2018,
+            "enrollment": 259
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "nct03848312",
+          "values": {
+            "nct_id": "NCT03848312",
+            "start_year": 2019,
+            "enrollment": 7600
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "nct03887455",
+          "values": {
+            "nct_id": "NCT03887455",
+            "start_year": 2019,
+            "enrollment": 1906
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "nct04229927",
+          "values": {
+            "nct_id": "NCT04229927",
+            "start_year": 2020,
+            "enrollment": 712
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "nct04241068",
+          "values": {
+            "nct_id": "NCT04241068",
+            "start_year": 2020,
+            "enrollment": 1696
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "nct04468659",
+          "values": {
+            "nct_id": "NCT04468659",
+            "start_year": 2020,
+            "enrollment": 1400
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "nct04770220",
+          "values": {
+            "nct_id": "NCT04770220",
+            "start_year": 2021,
+            "enrollment": 325
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "nct04777396",
+          "values": {
+            "nct_id": "NCT04777396",
+            "start_year": 2021,
+            "enrollment": 1840
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "nct04187547",
+          "values": {
+            "nct_id": "NCT04187547",
+            "start_year": 2022,
+            "enrollment": 0
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "nct05267535",
+          "values": {
+            "nct_id": "NCT05267535",
+            "start_year": 2022,
+            "enrollment": 225
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "nct05310071",
+          "values": {
+            "nct_id": "NCT05310071",
+            "start_year": 2022,
+            "enrollment": 1027
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "nct05463731",
+          "values": {
+            "nct_id": "NCT05463731",
+            "start_year": 2022,
+            "enrollment": 1667
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "nct05511363",
+          "values": {
+            "nct_id": "NCT05511363",
+            "start_year": 2022,
+            "enrollment": 410
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "nct05542953",
+          "values": {
+            "nct_id": "NCT05542953",
+            "start_year": 2022,
+            "enrollment": 230
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "nct05738486",
+          "values": {
+            "nct_id": "NCT05738486",
+            "start_year": 2023,
+            "enrollment": 1175
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "nct05980949",
+          "values": {
+            "nct_id": "NCT05980949",
+            "start_year": 2023,
+            "enrollment": 1000
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "nct06126224",
+          "values": {
+            "nct_id": "NCT06126224",
+            "start_year": 2023,
+            "enrollment": 500
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "nct06159673",
+          "values": {
+            "nct_id": "NCT06159673",
+            "start_year": 2023,
+            "enrollment": 1074
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "nct06194799",
+          "values": {
+            "nct_id": "NCT06194799",
+            "start_year": 2024,
+            "enrollment": 752
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "nct06304883",
+          "values": {
+            "nct_id": "NCT06304883",
+            "start_year": 2024,
+            "enrollment": 163
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "nct06384573",
+          "values": {
+            "nct_id": "NCT06384573",
+            "start_year": 2024,
+            "enrollment": 40
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "nct06530732",
+          "values": {
+            "nct_id": "NCT06530732",
+            "start_year": 2024,
+            "enrollment": 60
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "nct06653153",
+          "values": {
+            "nct_id": "NCT06653153",
+            "start_year": 2024,
+            "enrollment": 1400
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "nct06976203",
+          "values": {
+            "nct_id": "NCT06976203",
+            "start_year": 2025,
+            "enrollment": 586
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "nct06976216",
+          "values": {
+            "nct_id": "NCT06976216",
+            "start_year": 2025,
+            "enrollment": 586
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "nct07011745",
+          "values": {
+            "nct_id": "NCT07011745",
+            "start_year": 2025,
+            "enrollment": 426
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "nct07060391",
+          "values": {
+            "nct_id": "NCT07060391",
+            "start_year": 2025,
+            "enrollment": 186
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "nct06964230",
+          "values": {
+            "nct_id": "NCT06964230",
+            "start_year": 2026,
+            "enrollment": 376
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "nct07191028",
+          "values": {
+            "nct_id": "NCT07191028",
+            "start_year": 2026,
+            "enrollment": 350
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "nct07284472",
+          "values": {
+            "nct_id": "NCT07284472",
+            "start_year": 2026,
+            "enrollment": 300
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "nct07422857",
+          "values": {
+            "nct_id": "NCT07422857",
+            "start_year": 2026,
+            "enrollment": 316
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "nct07717411",
+          "values": {
+            "nct_id": "NCT07717411",
+            "start_year": 2026,
+            "enrollment": 1600
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "nct07724132",
+          "values": {
+            "nct_id": "NCT07724132",
+            "start_year": 2026,
+            "enrollment": 1200
+          },
+          "citation_ids": []
+        },
+        {
+          "id": "nct05303701",
+          "values": {
+            "nct_id": "NCT05303701",
+            "start_year": 2027,
+            "enrollment": 750
+          },
+          "citation_ids": []
+        }
+      ]
+    }
+  },
+  "answer": null,
+  "provenance": {
+    "source": {
+      "name": "ClinicalTrials.gov",
+      "api_version": "2.0.5",
+      "data_timestamp": "2026-07-31T09:00:04",
+      "retrieved_at": "2026-08-01T03:55:16.825576Z",
+      "endpoint": "https://clinicaltrials.gov/api/v2/studies"
+    },
+    "citations": {}
+  },
+  "meta": {
+    "planner": {
+      "mode": "openai",
+      "model": "gpt-5.4-mini",
+      "capability_limited": false
+    },
+    "record_counts": {
+      "matched": 137,
+      "retrieved": 137,
+      "used": 36,
+      "excluded": 101
+    },
+    "completeness": {
+      "status": "complete",
+      "is_complete": true,
+      "pages_retrieved": 1,
+      "reason": null
+    },
+    "duration_ms": 2757,
+    "warnings": []
+  }
+}

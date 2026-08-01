@@ -1,0 +1,89 @@
+{
+  "schema_version": "1.0",
+  "request_id": "7d40bf69-a89f-426f-9a70-d938ac96df4d",
+  "status": "ok",
+  "result_type": "scalar_answer",
+  "query": {
+    "original": "How many recruiting melanoma trials are there?",
+    "interpretation": "Count distinct clinical trials matching all requested filters.",
+    "structured_filters_authoritative": true,
+    "warnings": [
+      "The deterministic fallback planner supports explicit scalar counts, totals, and averages over ClinicalTrials.gov metadata."
+    ]
+  },
+  "plan": {
+    "schema_version": "1.0",
+    "output_type": "scalar_answer",
+    "interpretation": "Count distinct clinical trials matching all requested filters.",
+    "cohorts": [
+      {
+        "id": "all-matching",
+        "label": "All matching trials",
+        "filters": [
+          {
+            "field": "condition",
+            "operator": "contains",
+            "values": [
+              "melanoma"
+            ]
+          },
+          {
+            "field": "status",
+            "operator": "equals",
+            "values": [
+              "RECRUITING"
+            ]
+          }
+        ]
+      }
+    ],
+    "measure": {
+      "field": "nct_id",
+      "aggregation": "count_distinct",
+      "label": "Unique trial count",
+      "unit": "trials"
+    }
+  },
+  "visualization": null,
+  "answer": {
+    "kind": "scalar",
+    "title": "Unique trial count",
+    "text": "439 matching clinical trials were found in the source snapshot.",
+    "value": 439,
+    "unit": "trials",
+    "citation_ids": []
+  },
+  "provenance": {
+    "source": {
+      "name": "ClinicalTrials.gov",
+      "api_version": "2.0.5",
+      "data_timestamp": "2026-07-31T09:00:04",
+      "retrieved_at": "2026-08-01T03:53:37.157937Z",
+      "endpoint": "https://clinicaltrials.gov/api/v2/studies"
+    },
+    "citations": {}
+  },
+  "meta": {
+    "planner": {
+      "mode": "rules",
+      "model": null,
+      "capability_limited": true
+    },
+    "record_counts": {
+      "matched": 476,
+      "retrieved": 476,
+      "used": 439,
+      "excluded": 37
+    },
+    "completeness": {
+      "status": "complete",
+      "is_complete": true,
+      "pages_retrieved": 1,
+      "reason": null
+    },
+    "duration_ms": 631,
+    "warnings": [
+      "The deterministic fallback planner supports explicit scalar counts, totals, and averages over ClinicalTrials.gov metadata."
+    ]
+  }
+}
