@@ -13,11 +13,11 @@ advice, efficacy judgments, causality, or prognosis are rejected as unsupported.
 
 ## Demo
 
-[Watch the Cheiron application demo](demo/Cheiron_demo.mov) (1 minute 54 seconds,
-no audio). The recording demonstrates natural-language clinical-trial queries,
-multiple visualization types, datum-level ClinicalTrials.gov provenance, and a
-safe pivot from an unsupported medical-advice request to supported trial
-analysis.
+[Watch the Cheiron application demo on Google Drive](https://drive.google.com/file/d/1wMGmetaBA11pE1PS6zE4VzWAgS0PRNrB/view?usp=sharing)
+(1 minute 54 seconds, no audio). The recording demonstrates natural-language
+clinical-trial queries, multiple visualization types, datum-level
+ClinicalTrials.gov provenance, and a safe pivot from an unsupported
+medical-advice request to supported trial analysis.
 
 ## What is implemented
 
