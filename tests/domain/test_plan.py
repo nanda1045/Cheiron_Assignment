@@ -75,6 +75,51 @@ def test_numeric_filter_rejects_non_integer_threshold() -> None:
         )
 
 
+@pytest.mark.parametrize(
+    ("field", "human_value", "canonical_value"),
+    [
+        (FilterField.PHASE, "Phase 3", "PHASE3"),
+        (FilterField.PHASE, "Phase III", "PHASE3"),
+        (FilterField.PHASE, "Not Applicable", "NA"),
+        (FilterField.STATUS, "Active, not recruiting", "ACTIVE_NOT_RECRUITING"),
+        (FilterField.STUDY_TYPE, "Expanded Access", "EXPANDED_ACCESS"),
+        (FilterField.SPONSOR_CLASS, "Federal", "FED"),
+        (FilterField.SPONSOR_CLASS, "Other Government", "OTHER_GOV"),
+    ],
+)
+def test_categorical_filters_use_clinical_trials_vocabulary(
+    field: FilterField,
+    human_value: str,
+    canonical_value: str,
+) -> None:
+    clause = FilterClause(
+        field=field,
+        operator=FilterOperator.EQUALS,
+        values=[human_value],
+    )
+
+    assert clause.values == [canonical_value]
+
+
+def test_categorical_filter_rejects_unknown_source_value() -> None:
+    with pytest.raises(ValidationError, match="unsupported phase value"):
+        FilterClause(
+            field=FilterField.PHASE,
+            operator=FilterOperator.EQUALS,
+            values=["Late stage"],
+        )
+
+
+def test_free_text_filter_values_are_not_rewritten() -> None:
+    clause = FilterClause(
+        field=FilterField.CONDITION,
+        operator=FilterOperator.CONTAINS,
+        values=["HER2-positive Breast Cancer"],
+    )
+
+    assert clause.values == ["HER2-positive Breast Cancer"]
+
+
 def test_scatter_plan_rejects_aggregated_measure() -> None:
     with pytest.raises(ValidationError, match="unaggregated enrollment"):
         AnalysisPlan(

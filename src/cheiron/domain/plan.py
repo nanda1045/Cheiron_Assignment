@@ -2,7 +2,7 @@
 
 from typing import Literal
 
-from pydantic import Field, model_validator
+from pydantic import Field, ValidationInfo, field_validator, model_validator
 
 from cheiron.domain.base import DomainModel
 from cheiron.domain.enums import (
@@ -17,6 +17,7 @@ from cheiron.domain.enums import (
     TimeGranularity,
     VisualizationType,
 )
+from cheiron.domain.filter_vocabulary import canonicalize_categorical_value
 
 PlanValue = str | int
 
@@ -27,6 +28,18 @@ class FilterClause(DomainModel):
     field: FilterField
     operator: FilterOperator
     values: list[PlanValue] = Field(min_length=1, max_length=20)
+
+    @field_validator("values", mode="after")
+    @classmethod
+    def canonicalize_categorical_values(
+        cls,
+        values: list[PlanValue],
+        info: ValidationInfo,
+    ) -> list[PlanValue]:
+        field = info.data.get("field")
+        if not isinstance(field, FilterField):
+            return values
+        return [canonicalize_categorical_value(field, value) for value in values]
 
     @model_validator(mode="after")
     def validate_operator_arity(self) -> "FilterClause":

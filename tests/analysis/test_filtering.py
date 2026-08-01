@@ -30,3 +30,18 @@ def test_numeric_year_filter_uses_preserved_partial_date(
     matching = RecordFilter().filter(normalized_trials, [clause])
 
     assert [record.nct_id for record in matching] == ["NCT00000001"]
+
+
+def test_human_phase_label_is_canonicalized_before_exact_filtering(
+    normalized_trials: tuple[TrialRecord, ...],
+) -> None:
+    clause = FilterClause(
+        field=FilterField.PHASE,
+        operator=FilterOperator.EQUALS,
+        values=["Phase 3"],
+    )
+
+    matching = RecordFilter().filter(normalized_trials, [clause])
+
+    assert clause.values == ["PHASE3"]
+    assert [record.nct_id for record in matching] == ["NCT00000001"]
